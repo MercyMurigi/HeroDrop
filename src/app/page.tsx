@@ -52,7 +52,7 @@ export default function AuthPage() {
                     HeroDrop+
                 </h1>
             </div>
-            <h2 className="text-3xl font-bold font-headline">A Healthier Future Starts With You</h2>
+            <h2 className="text-3xl font-bold font-headline">Your Drop. Your Health. Your Future</h2>
             <p className="text-balance text-muted-foreground">
               Join HeroDrop+ to donate blood, earn rewards, and save lives. Your single act of kindness can make a world of difference.
             </p>
