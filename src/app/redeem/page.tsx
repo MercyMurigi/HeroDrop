@@ -279,7 +279,7 @@ export default function RedeemPage() {
                   Step 2: Here is your code. Show this at the facility/store to redeem.
                 </DialogDescription>
               </DialogHeader>
-               <div className="flex-grow py-4 space-y-4 overflow-y-auto">
+               <div className="flex-grow py-4 space-y-4 overflow-y-auto -mr-6 pr-6">
                 <div className="bg-primary/5 border-2 border-dashed border-primary/20 rounded-lg p-6 text-center">
                   <p className="text-sm font-medium text-muted-foreground">Your Redemption Code</p>
                   <div className="flex items-center justify-center gap-3 mt-2">
@@ -333,7 +333,7 @@ export default function RedeemPage() {
   }
   
   const renderItemCard = (item: RedeemableItem, isItemLoading: boolean) => (
-      <Card key={item.title} className="shadow-lg flex flex-col overflow-hidden group">
+      <Card key={item.title} className="flex flex-col overflow-hidden group hover:shadow-xl">
           <div className="relative h-48 w-full">
             {isItemLoading ? <Skeleton className="h-full w-full" /> : <Image src={item.image} alt={item.title} fill objectFit="cover" className="transition-transform duration-300 group-hover:scale-105" data-ai-hint={item.hint} />}
           </div>

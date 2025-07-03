@@ -39,7 +39,7 @@ export default function RewardsPage() {
         </Button>
       </div>
 
-      <Card className="shadow-lg">
+      <Card className="hover:shadow-xl">
         <CardHeader>
             <CardTitle>Recent Redemptions</CardTitle>
             <CardDescription>A list of recent reward redemptions by users.</CardDescription>

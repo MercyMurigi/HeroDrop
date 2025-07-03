@@ -105,7 +105,7 @@ export default function PledgesPage() {
         <Button>Bulk Update</Button>
       </div>
 
-      <Card className="shadow-lg">
+      <Card className="hover:shadow-xl">
         <CardHeader>
           <CardTitle>All Pledges</CardTitle>
           <CardDescription>A list of all recent donation pledges from users.</CardDescription>

@@ -11,7 +11,7 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="shadow-lg">
+        <Card className="hover:shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <Users className="h-5 w-5 text-primary" />
@@ -21,7 +21,7 @@ export default function AdminDashboardPage() {
             <p className="text-xs text-muted-foreground">+50 this week</p>
           </CardContent>
         </Card>
-        <Card className="shadow-lg">
+        <Card className="hover:shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Donations Completed</CardTitle>
             <HeartHandshake className="h-5 w-5 text-primary" />
@@ -31,7 +31,7 @@ export default function AdminDashboardPage() {
             <p className="text-xs text-muted-foreground">+120 this month</p>
           </CardContent>
         </Card>
-        <Card className="shadow-lg">
+        <Card className="hover:shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tokens Issued</CardTitle>
             <Coins className="h-5 w-5 text-primary" />
@@ -41,7 +41,7 @@ export default function AdminDashboardPage() {
             <p className="text-xs text-muted-foreground">Total issued lifetime</p>
           </CardContent>
         </Card>
-        <Card className="shadow-lg">
+        <Card className="hover:shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tokens Redeemed</CardTitle>
             <Gift className="h-5 w-5 text-primary" />
@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <Card className="shadow-lg">
+        <Card className="hover:shadow-xl">
           <CardHeader>
             <CardTitle>Weekly Donations</CardTitle>
             <CardDescription>Number of completed donations per week.</CardDescription>
@@ -63,7 +63,7 @@ export default function AdminDashboardPage() {
             <WeeklyDonationsChart />
           </CardContent>
         </Card>
-        <Card className="shadow-lg">
+        <Card className="hover:shadow-xl">
           <CardHeader>
             <CardTitle>Redemption Volume</CardTitle>
             <CardDescription>Volume of tokens redeemed over time.</CardDescription>

@@ -26,7 +26,7 @@ export default function SmsToolsPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="broadcast">
-            <Card className="shadow-lg">
+            <Card className="hover:shadow-xl">
                 <CardHeader>
                 <CardTitle className="font-headline">Broadcast SMS to Donors</CardTitle>
                 <CardDescription>
@@ -39,7 +39,7 @@ export default function SmsToolsPage() {
             </Card>
         </TabsContent>
         <TabsContent value="generator">
-            <Card className="shadow-lg">
+            <Card className="hover:shadow-xl">
                 <CardHeader>
                 <CardTitle className="font-headline">SMS Notification Generator</CardTitle>
                 <CardDescription>

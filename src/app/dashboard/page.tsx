@@ -193,7 +193,7 @@ export default function DashboardPage() {
         {stats.map((stat, index) => (
           <Card 
             key={stat.title} 
-            className="shadow-lg opacity-0 animate-fade-in-up" 
+            className="opacity-0 animate-fade-in-up hover:shadow-xl" 
             style={{ animationDelay: `${(index + 1) * 100}ms`, animationFillMode: 'forwards' }}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -211,7 +211,7 @@ export default function DashboardPage() {
       <div className="grid gap-8 lg:grid-cols-5">
         <div className="lg:col-span-3 space-y-8">
             <Card 
-                className="shadow-lg opacity-0 animate-fade-in-up" 
+                className="opacity-0 animate-fade-in-up hover:shadow-xl" 
                 style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}
             >
               <CardHeader>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card 
-                className="shadow-lg opacity-0 animate-fade-in-up" 
+                className="opacity-0 animate-fade-in-up hover:shadow-xl" 
                 style={{ animationDelay: '500ms', animationFillMode: 'forwards' }}
             >
               <CardHeader>
@@ -297,7 +297,7 @@ export default function DashboardPage() {
         </div>
         <div className="lg:col-span-2">
             <Card 
-                className="shadow-lg opacity-0 animate-fade-in-up" 
+                className="opacity-0 animate-fade-in-up hover:shadow-xl" 
                 style={{ animationDelay: '600ms', animationFillMode: 'forwards' }}
             >
               <CardHeader>

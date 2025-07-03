@@ -37,7 +37,7 @@ export default function ServicesPage() {
         </Button>
       </div>
 
-       <Card className="shadow-lg">
+       <Card className="hover:shadow-xl">
         <CardHeader>
             <CardTitle>All Services & Campaigns</CardTitle>
             <CardDescription>A list of all services donors can redeem.</CardDescription>

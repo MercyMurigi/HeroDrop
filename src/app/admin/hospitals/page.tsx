@@ -36,7 +36,7 @@ export default function HospitalsPage() {
         </Button>
       </div>
 
-      <Card className="shadow-lg">
+      <Card className="hover:shadow-xl">
         <CardHeader>
             <CardTitle>Partner Facilities</CardTitle>
             <CardDescription>A list of all hospitals and clinics on the HeroDrop+ platform.</CardDescription>
