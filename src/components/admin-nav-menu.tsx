@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, HeartHandshake, Award, Stethoscope, Hospital, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, HeartHandshake, Award, Stethoscope, Hospital, Send } from 'lucide-react';
 
 const menuItems = [
   { href: '/admin/dashboard', label: 'Analytics', icon: LayoutDashboard },
@@ -11,7 +11,7 @@ const menuItems = [
   { href: '/admin/rewards', label: 'Rewards', icon: Award },
   { href: '/admin/services', label: 'Services', icon: Stethoscope },
   { href: '/admin/hospitals', label: 'Hospitals', icon: Hospital },
-  { href: '/admin/sms-tools', label: 'SMS Tools', icon: MessageSquare },
+  { href: '/admin/sms-tools', label: 'Broadcast', icon: Send },
 ];
 
 export function AdminNavMenu() {
