@@ -4,3 +4,4 @@ config();
 import '@/ai/flows/generate-sms-notification.ts';
 import '@/ai/flows/find-facilities.ts';
 import '@/ai/flows/check-eligibility.ts';
+import '@/ai/flows/generate-next-of-kin-sms.ts';

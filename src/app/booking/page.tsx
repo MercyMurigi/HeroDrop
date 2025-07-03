@@ -7,9 +7,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { FacilityFinder } from '@/components/facility-finder';
 import { EligibilityQuestionnaire } from '@/components/eligibility-questionnaire';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import type { FindFacilitiesOutput } from '@/ai/flows/find-facilities';
 import { useToast } from '@/hooks/use-toast';
+import { generateSmsNotification } from '@/ai/flows/generate-sms-notification';
+import { generateNextOfKinSms } from '@/ai/flows/generate-next-of-kin-sms';
+
 
 type Facility = FindFacilitiesOutput['facilities'][0];
 type EligibilityData = any;
@@ -19,6 +22,7 @@ export default function BookingPage() {
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [eligibilityData, setEligibilityData] = useState<EligibilityData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [isBooking, setIsBooking] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -31,15 +35,58 @@ export default function BookingPage() {
     setStep(3);
   }
 
-  const handleConfirmBooking = () => {
-    // In a real app, this would save to a database.
-    toast({
-        title: "Appointment Confirmed!",
-        description: `Your booking at ${selectedFacility?.name} for ${selectedDate?.toLocaleDateString()} is confirmed.`,
-        variant: 'default',
-        className: 'bg-green-100 border-green-300'
-    });
-    router.push('/dashboard');
+  const handleConfirmBooking = async () => {
+    if (!selectedFacility || !selectedDate) return;
+    setIsBooking(true);
+
+    try {
+        // In a real app, we'd get donor and next of kin details from user session/state
+        const donorDetails = {
+            name: 'Jane Donor', // Placeholder
+            tokenBalance: 130, // Placeholder
+        };
+        const nextOfKinDetails = {
+            name: 'John Donor', // Placeholder
+        };
+
+        // Generate and "send" SMS to donor
+        const donorSmsPromise = generateSmsNotification({
+            notificationType: 'confirmation',
+            userName: donorDetails.name,
+            tokenBalance: donorDetails.tokenBalance,
+            appointmentTime: `${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`,
+            hospitalName: selectedFacility.name,
+        });
+
+        // Generate and "send" SMS to next of kin
+        const nextOfKinSmsPromise = generateNextOfKinSms({
+            donorName: donorDetails.name,
+            nextOfKinName: nextOfKinDetails.name,
+            hospitalName: selectedFacility.name,
+        });
+
+        // Await both promises
+        const [donorSmsResult, nextOfKinSmsResult] = await Promise.all([donorSmsPromise, nextOfKinSmsPromise]);
+
+        console.log("Donor SMS:", donorSmsResult.smsMessage);
+        console.log("Next of Kin SMS:", nextOfKinSmsResult.smsMessage);
+
+        toast({
+            title: "Appointment Confirmed!",
+            description: `Your booking at ${selectedFacility.name} for ${selectedDate.toLocaleDateString()} is confirmed. Notifications sent.`,
+        });
+        router.push('/dashboard');
+
+    } catch (error) {
+        console.error("Booking failed:", error);
+        toast({
+            variant: "destructive",
+            title: "Booking Failed",
+            description: "We couldn't confirm your appointment or send notifications. Please try again.",
+        });
+    } finally {
+        setIsBooking(false);
+    }
   }
 
   const goToNextStep = () => setStep(step + 1);
@@ -134,7 +181,15 @@ export default function BookingPage() {
                             <p className="font-semibold">Date</p>
                             <p className="text-muted-foreground">{selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Please select a date'}</p>
                         </div>
-                        <Button size="lg" className="w-full text-lg" onClick={handleConfirmBooking} disabled={!selectedDate}>Confirm Booking</Button>
+                        <Button size="lg" className="w-full text-lg" onClick={handleConfirmBooking} disabled={!selectedDate || isBooking}>
+                          {isBooking ? (
+                              <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...
+                              </>
+                          ) : (
+                              'Confirm Booking'
+                          )}
+                        </Button>
                     </CardContent>
                 </Card>
             </div>
