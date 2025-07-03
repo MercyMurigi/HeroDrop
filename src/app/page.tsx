@@ -10,14 +10,15 @@ import { Droplet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function AuthPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('donor');
 
   const handleLogin = () => {
-    // A simple way to direct to admin for the prototype
-    if (email.toLowerCase().includes('admin')) {
+    if (role === 'admin') {
       router.push('/admin/dashboard');
     } else {
       router.push('/dashboard');
@@ -58,6 +59,13 @@ export default function AuthPage() {
                     <h2 className="text-3xl font-bold font-headline tracking-tight text-card-foreground">Welcome Back</h2>
                     <p className="text-muted-foreground">Sign in to continue your journey.</p>
                 </div>
+                
+                <Tabs defaultValue="donor" onValueChange={(value) => setRole(value)} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="donor">Donor Login</TabsTrigger>
+                    <TabsTrigger value="admin">Admin Login</TabsTrigger>
+                  </TabsList>
+                </Tabs>
 
                 <div className="grid gap-4">
                     <div className="grid gap-2">
@@ -65,7 +73,7 @@ export default function AuthPage() {
                         <Input 
                             id="email" 
                             type="email" 
-                            placeholder="user@example.com" 
+                            placeholder={role === 'donor' ? "donor@example.com" : "admin@example.com"}
                             required 
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -76,7 +84,7 @@ export default function AuthPage() {
                         <Input id="password" type="password" required placeholder="Enter password" />
                     </div>
                     <Button onClick={handleLogin} className="w-full" size="lg">
-                        Login
+                        Login as {role === 'donor' ? 'Donor' : 'Admin'}
                     </Button>
                     <div className="mt-4 text-center text-sm">
                         Don&apos;t have an account?{" "}
