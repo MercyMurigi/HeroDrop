@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { FacilityFinder } from '@/components/facility-finder';
 import { EligibilityQuestionnaire } from '@/components/eligibility-questionnaire';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import type { FindFacilitiesOutput } from '@/ai/flows/find-facilities';
+import { useToast } from '@/hooks/use-toast';
 
 type Facility = FindFacilitiesOutput['facilities'][0];
 type EligibilityData = any;
@@ -17,20 +19,37 @@ export default function BookingPage() {
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [eligibilityData, setEligibilityData] = useState<EligibilityData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleFacilitySelect = (facility: Facility) => {
     setSelectedFacility(facility);
   };
   
-  const handleEligibilitySubmit = (data: EligibilityData) => {
-    // In a real app, we'd check answers here to determine eligibility.
-    // For this implementation, we'll assume they are eligible and proceed.
+  const handleEligibilityComplete = (data: EligibilityData) => {
     setEligibilityData(data);
     setStep(3);
   }
 
+  const handleConfirmBooking = () => {
+    // In a real app, this would save to a database.
+    toast({
+        title: "Appointment Confirmed!",
+        description: `Your booking at ${selectedFacility?.name} for ${selectedDate?.toLocaleDateString()} is confirmed.`,
+        variant: 'default',
+        className: 'bg-green-100 border-green-300'
+    });
+    router.push('/dashboard');
+  }
+
   const goToNextStep = () => setStep(step + 1);
-  const goToPrevStep = () => setStep(step - 1);
+  const goToPrevStep = () => {
+    // If going back from step 3, reset eligibility data
+    if(step === 3) {
+        setEligibilityData(null);
+    }
+    setStep(step - 1);
+  }
 
   const getStepDescription = () => {
       switch(step) {
@@ -78,7 +97,7 @@ export default function BookingPage() {
       )}
 
       {step === 2 && (
-        <EligibilityQuestionnaire onSubmit={handleEligibilitySubmit} />
+        <EligibilityQuestionnaire onComplete={handleEligibilityComplete} />
       )}
 
       {step === 3 && selectedFacility && (
@@ -95,6 +114,7 @@ export default function BookingPage() {
                         selected={selectedDate}
                         onSelect={setSelectedDate}
                         className="rounded-md border"
+                        disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))}
                     />
                     </CardContent>
                 </Card>
@@ -102,7 +122,7 @@ export default function BookingPage() {
             <div className="lg:col-span-1">
                 <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle className="font-headline">3. Confirm Details</CardTitle>
+                        <CardTitle className="font-headline">Confirm Details</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
@@ -114,7 +134,7 @@ export default function BookingPage() {
                             <p className="font-semibold">Date</p>
                             <p className="text-muted-foreground">{selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Please select a date'}</p>
                         </div>
-                        <Button size="lg" className="w-full text-lg">Confirm Booking</Button>
+                        <Button size="lg" className="w-full text-lg" onClick={handleConfirmBooking} disabled={!selectedDate}>Confirm Booking</Button>
                     </CardContent>
                 </Card>
             </div>

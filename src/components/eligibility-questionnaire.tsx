@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,33 +10,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { checkEligibility, CheckEligibilityInputSchema, CheckEligibilityOutput } from '@/ai/flows/check-eligibility';
+import { useToast } from '@/hooks/use-toast';
 
-const formSchema = z.object({
-    // A. General Health
-    feelingWell: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    fever: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    weightLoss: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    // B. Recent Illness
-    malaria: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    typhoid: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    surgery: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    // C. Infectious Diseases
-    hiv: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    sti: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    covid: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    // D. Medication
-    medication: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    medicationList: z.string().optional(),
-    vaccine: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    // E. Pregnancy
-    pregnant: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    gaveBirth: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    breastfeeding: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    // F. Lifestyle
-    newPartner: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    injectedDrugs: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-    paidForBlood: z.enum(['yes', 'no'], { required_error: "Please select an option." }),
-}).refine(data => {
+const formSchema = CheckEligibilityInputSchema.refine(data => {
     if (data.medication === 'yes') {
         return !!data.medicationList && data.medicationList.length > 0;
     }
@@ -48,7 +28,7 @@ const formSchema = z.object({
 type EligibilityFormValues = z.infer<typeof formSchema>;
 
 interface EligibilityQuestionnaireProps {
-    onSubmit: (data: EligibilityFormValues) => void;
+    onComplete: (data: EligibilityFormValues) => void;
 }
 
 const Question = ({ name, label, control }: { name: keyof EligibilityFormValues, label: string, control: any }) => (
@@ -69,15 +49,15 @@ const Question = ({ name, label, control }: { name: keyof EligibilityFormValues,
                         >
                             <FormItem className="flex items-center space-x-2">
                                 <FormControl>
-                                    <RadioGroupItem value="yes" />
+                                    <RadioGroupItem value="yes" id={`${String(name)}-yes`} />
                                 </FormControl>
-                                <FormLabel className="font-normal">Yes</FormLabel>
+                                <FormLabel htmlFor={`${String(name)}-yes`} className="font-normal">Yes</FormLabel>
                             </FormItem>
                             <FormItem className="flex items-center space-x-2">
                                 <FormControl>
-                                    <RadioGroupItem value="no" />
+                                    <RadioGroupItem value="no" id={`${String(name)}-no`} />
                                 </FormControl>
-                                <FormLabel className="font-normal">No</FormLabel>
+                                <FormLabel htmlFor={`${String(name)}-no`} className="font-normal">No</FormLabel>
                             </FormItem>
                         </RadioGroup>
                     </FormControl>
@@ -88,7 +68,11 @@ const Question = ({ name, label, control }: { name: keyof EligibilityFormValues,
     />
 );
 
-export function EligibilityQuestionnaire({ onSubmit }: EligibilityQuestionnaireProps) {
+export function EligibilityQuestionnaire({ onComplete }: EligibilityQuestionnaireProps) {
+    const [isLoading, setIsLoading] = useState(false);
+    const [aiResponse, setAiResponse] = useState<CheckEligibilityOutput | null>(null);
+    const { toast } = useToast();
+
     const form = useForm<EligibilityFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -98,17 +82,41 @@ export function EligibilityQuestionnaire({ onSubmit }: EligibilityQuestionnaireP
 
     const watchMedication = form.watch('medication');
 
+    const handleFormSubmit = async (data: EligibilityFormValues) => {
+        setIsLoading(true);
+        setAiResponse(null);
+        try {
+            const result = await checkEligibility(data);
+            setAiResponse(result);
+            if (result.isEligible) {
+                // Wait a moment before proceeding so the user can see the success message
+                setTimeout(() => {
+                    onComplete(data);
+                }, 1000);
+            }
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: "destructive",
+                title: "Error Checking Eligibility",
+                description: "There was a problem with our AI check. Please try again.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     return (
         <Card className="shadow-lg">
             <CardHeader>
                 <CardTitle className="font-headline">2. Medical Eligibility</CardTitle>
-                <CardDescription>Please answer these questions honestly. This information is confidential and helps ensure the safety of both you and the recipient.</CardDescription>
+                <CardDescription>Please answer these questions honestly. Our AI will review your answers to ensure the safety of both you and the recipient.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-8">
                         <Accordion type="multiple" className="w-full" defaultValue={['item-1']}>
-                            <AccordionItem value="item-1">
+                             <AccordionItem value="item-1">
                                 <AccordionTrigger className="text-lg font-semibold">A. General Health</AccordionTrigger>
                                 <AccordionContent className="space-y-4 pt-4">
                                     <Question name="feelingWell" label="Are you feeling well today?" control={form.control} />
@@ -172,8 +180,27 @@ export function EligibilityQuestionnaire({ onSubmit }: EligibilityQuestionnaireP
                             </AccordionItem>
                         </Accordion>
 
+                        {aiResponse && (
+                            <Alert variant={aiResponse.isEligible ? "default" : "destructive"} className={aiResponse.isEligible ? "bg-green-50 border-green-200" : ""}>
+                                {aiResponse.isEligible ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                                <AlertTitle>{aiResponse.isEligible ? "Eligibility Confirmed!" : "Eligibility Check Failed"}</AlertTitle>
+                                <AlertDescription>
+                                    {aiResponse.feedback}
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
                         <div className="flex justify-end">
-                            <Button type="submit" size="lg">Continue to Date Selection</Button>
+                            <Button type="submit" size="lg" disabled={isLoading}>
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Checking Eligibility...
+                                    </>
+                                ) : (
+                                    'Check Eligibility & Continue'
+                                )}
+                            </Button>
                         </div>
                     </form>
                 </Form>
