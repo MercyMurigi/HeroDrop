@@ -3,29 +3,15 @@
  * @fileOverview An AI-powered flow to find and rank blood donation facilities.
  *
  * - findFacilities - A function that matches a user's location query to a list of facilities.
- * - FindFacilitiesInput - The input type for the findFacilities function.
- * - FindFacilitiesOutput - The return type for the findFacilities function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-const FindFacilitiesInputSchema = z.object({
-  locationQuery: z.string().describe('The user\'s location search query, which may contain typos or be informal.'),
-});
-export type FindFacilitiesInput = z.infer<typeof FindFacilitiesInputSchema>;
-
-const FacilitySchema = z.object({
-  name: z.string().describe('The name of the donation facility.'),
-  address: z.string().describe('The full address of the facility.'),
-  distance: z.string().describe('A reasonable estimate of the distance from the user\'s query location, in kilometers (e.g., "5 km").'),
-  availability: z.enum(['High', 'Medium', 'Low']).describe('The current availability for booking appointments at this facility.'),
-});
-
-const FindFacilitiesOutputSchema = z.object({
-    facilities: z.array(FacilitySchema).describe('A ranked list of matching donation facilities.'),
-});
-export type FindFacilitiesOutput = z.infer<typeof FindFacilitiesOutputSchema>;
+import {
+  FindFacilitiesInput,
+  FindFacilitiesInputSchema,
+  FindFacilitiesOutput,
+  FindFacilitiesOutputSchema
+} from "@/ai/schemas/facilities";
 
 export async function findFacilities(input: FindFacilitiesInput): Promise<FindFacilitiesOutput> {
   return findFacilitiesFlow(input);

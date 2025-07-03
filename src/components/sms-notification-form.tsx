@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { generateSmsNotification, GenerateSmsNotificationInput } from '@/ai/flows/generate-sms-notification';
+import { generateSmsNotification } from '@/ai/flows/generate-sms-notification';
+import type { GenerateSmsNotificationInput } from '@/ai/schemas/sms';
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";

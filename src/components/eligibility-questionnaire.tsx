@@ -12,7 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { checkEligibility, CheckEligibilityInputSchema, CheckEligibilityOutput } from '@/ai/flows/check-eligibility';
+import { checkEligibility } from '@/ai/flows/check-eligibility';
+import { CheckEligibilityInputSchema, type CheckEligibilityOutput } from '@/ai/schemas/eligibility';
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = CheckEligibilityInputSchema.refine(data => {
