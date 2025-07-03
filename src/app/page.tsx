@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { cn } from "@/lib/utils";
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+
+const AnimatedIcon = ({ className, children }: { className?: string; children: React.ReactNode }) => (
+    <div className={cn("absolute -z-10 text-primary/10", className)}>
+        {children}
+    </div>
+);
 
 export default function AuthPage() {
   const router = useRouter();
@@ -33,8 +40,23 @@ export default function AuthPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="flex items-center justify-center p-6 sm:p-12">
-        <div className="mx-auto grid w-full max-w-[400px] gap-6">
+      <div className="relative flex items-center justify-center p-6 sm:p-12 overflow-hidden">
+        
+        {/* Animated Background Icons */}
+        <AnimatedIcon className="top-1/4 left-10 animate-float-1">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C5 11.1 4 13 4 15a7 7 0 0 0 7 7z"></path></svg>
+        </AnimatedIcon>
+        <AnimatedIcon className="top-10 right-10 animate-float-2">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </AnimatedIcon>
+        <AnimatedIcon className="bottom-10 left-1/2 animate-float-3">
+            <svg width="80" height="40" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 12H10L14 4L18 20L22 10L26 14H48" stroke="currentColor" strokeWidth="1"/></svg>
+        </AnimatedIcon>
+         <AnimatedIcon className="bottom-20 right-20 animate-float-1 opacity-80">
+            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C5 11.1 4 13 4 15a7 7 0 0 0 7 7z"></path></svg>
+        </AnimatedIcon>
+
+        <div className="relative z-10 mx-auto grid w-full max-w-[400px] gap-6">
           <div className="grid gap-2 text-center">
             <div className="flex justify-center mb-2">
               <Logo />
@@ -50,7 +72,7 @@ export default function AuthPage() {
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
             <TabsContent value="login">
-              <Card className="border-none shadow-none">
+              <Card className="border-none shadow-none bg-transparent">
                 <CardHeader className="text-left px-1">
                   <CardTitle className="text-2xl">Welcome Back</CardTitle>
                   <CardDescription>
@@ -89,7 +111,7 @@ export default function AuthPage() {
               </Card>
             </TabsContent>
             <TabsContent value="signup">
-               <Card className="border-none shadow-none">
+               <Card className="border-none shadow-none bg-transparent">
                 <CardHeader className="text-left px-1">
                   <CardTitle className="text-2xl">Create an Account</CardTitle>
                   <CardDescription>
