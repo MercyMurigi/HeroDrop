@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, CalendarPlus, Wallet, ShoppingBag, Gift } from 'lucide-react';
+import { LayoutDashboard, CalendarPlus, Wallet, ShoppingBag, Gift, User } from 'lucide-react';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -11,6 +11,7 @@ const menuItems = [
   { href: '/wallet', label: 'Wallet', icon: Wallet },
   { href: '/redeem', 'label': 'Redeem Tokens', icon: ShoppingBag },
   { href: '/referrals', 'label': 'Refer a Friend', icon: Gift },
+  { href: '/profile', 'label': 'My Profile', icon: User },
 ];
 
 export function NavMenu() {
