@@ -29,8 +29,8 @@ export default function AuthPage() {
     <div className="relative min-h-screen w-full font-body">
       {/* Background Image */}
       <Image 
-          src="https://images.unsplash.com/photo-1615461066159-fea095038a8d?w=1920"
-          alt="A person with a bandage on their arm after donating blood"
+          src="https://images.unsplash.com/photo-1628394017997-a727287955b9?w=1920"
+          alt="A person with blue gloves is getting a blood test"
           fill
           className="object-cover"
           priority
