@@ -99,27 +99,31 @@ export default function RedeemPage() {
 
   const proceedToConfirmation = async () => {
     if (!selectedItem || !selectedLocation) return;
+
     setIsGenerating(true);
+
     try {
-      const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      let suggestionResult = {
-        suggestedTime: "Anytime during opening hours",
-        reasoning: "This is a product voucher. Please check the partner store for specific operating hours before visiting."
-      };
+      const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+      let suggestionResult;
 
       if (selectedItem.category === 'service') {
         const facility = selectedLocation as Facility;
-        const result = await suggestRedemptionTime({
+        suggestionResult = await suggestRedemptionTime({
           facilityName: facility.name,
           serviceName: selectedItem.title,
         });
-        suggestionResult = result;
+      } else {
+        suggestionResult = {
+          suggestedTime: "Anytime during opening hours",
+          reasoning: "This is a product voucher. Please check the partner store for specific operating hours before visiting."
+        };
       }
       
       setRedemptionDetails({ code, ...suggestionResult });
       setDialogStep('confirmRedemption');
+
     } catch (error) {
-      console.error("Failed to get suggestion:", error);
+      console.error("Failed to generate redemption details:", error);
       toast({
         variant: "destructive",
         title: "Action Failed",
