@@ -111,42 +111,47 @@ export default function RedeemPage() {
 
     try {
         const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`;
-        let finalSuggestedTime = "";
-        let finalReasoning = "";
+        let suggestedTime = "";
+        let reasoning = "";
 
         if (selectedItem.category === 'service') {
-            // A type guard to ensure we have a facility for a service
-            if ('availability' in selectedLocation) {
-                const result = await suggestRedemptionTime({
-                    facilityName: selectedLocation.name,
-                    serviceName: selectedItem.title,
-                });
-                if (!result || !result.suggestedTime) {
-                    throw new Error("AI failed to suggest a time.");
-                }
-                finalSuggestedTime = result.suggestedTime;
-                finalReasoning = result.reasoning;
-            } else {
-                throw new Error("Invalid location type for a health service.");
+            if (!('availability' in selectedLocation)) {
+                throw new Error("A health service was selected, but the chosen location is not a valid facility.");
             }
-        } else { // It's a product
-            finalSuggestedTime = "Anytime during opening hours";
-            finalReasoning = "This is a product voucher. Please check the partner store for specific operating hours before visiting.";
-        }
+            const result = await suggestRedemptionTime({
+                facilityName: selectedLocation.name,
+                serviceName: selectedItem.title,
+            });
 
+            if (!result?.suggestedTime) {
+                throw new Error("The AI assistant could not suggest a time. Please try again.");
+            }
+            suggestedTime = result.suggestedTime;
+            reasoning = result.reasoning;
+
+        } else if (selectedItem.category === 'product') {
+            if (!('type' in selectedLocation)) {
+                throw new Error("A product was selected, but the chosen location is not a valid partner store.");
+            }
+            suggestedTime = "Anytime during opening hours";
+            reasoning = "This is a product voucher. Please check the partner store for specific operating hours before visiting.";
+        } else {
+            throw new Error("Unknown redemption category.");
+        }
+        
         setRedemptionDetails({
-            code,
-            suggestedTime: finalSuggestedTime,
-            reasoning: finalReasoning,
+            code: code,
+            suggestedTime: suggestedTime,
+            reasoning: reasoning,
         });
         setDialogStep('confirmRedemption');
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to generate redemption details:", error);
         toast({
             variant: "destructive",
             title: "Action Failed",
-            description: "Could not generate redemption details. Please try again.",
+            description: error.message || "Could not generate redemption details. Please try again.",
         });
     } finally {
         setIsGenerating(false);
