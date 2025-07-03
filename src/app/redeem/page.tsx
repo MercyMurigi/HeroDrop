@@ -36,7 +36,7 @@ type RedeemableItem = {
 };
 
 const healthServices: RedeemableItem[] = [
-  { title: 'General Checkup', cost: 60, icon: Stethoscope, description: "A comprehensive health checkup with a general practitioner.", image: "https://placehold.co/600x400.png", hint: "doctor checkup", category: 'service', redemptionValue: "1 Session" },
+  { title: 'General Checkup', cost: 60, icon: Stethoscope, description: "A comprehensive health checkup with a general practitioner.", image: "https://images.unsplash.com/photo-1684607633251-8a4a8d94ddd2?q=80&w=1031&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", hint: "doctor checkup", category: 'service', redemptionValue: "1 Session" },
   { title: 'Free Lab Test', cost: 100, icon: HeartPulse, description: "Includes tests for malaria, hemoglobin levels, and more.", image: "https://placehold.co/600x400.png", hint: "lab test", category: 'service', redemptionValue: "1 Test Panel" },
   { title: 'Mental Health Session', cost: 80, icon: Smile, description: "A private session with a certified mental health professional.", image: "https://placehold.co/600x400.png", hint: "counseling session", category: 'service', redemptionValue: "1 Session" },
   { title: 'Queue Priority (Fast-Pass)', cost: 30, icon: ShieldCheck, description: "Skip the line and get priority access at partner facilities.", image: "https://placehold.co/600x400.png", hint: "hospital queue", category: 'service', redemptionValue: "1 Use Pass" },
