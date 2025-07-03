@@ -1,15 +1,16 @@
+
 "use client";
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Droplet, Heart, Activity, Plus, Hospital, User, Check } from 'lucide-react';
+import Image from 'next/image';
+import { Droplet, Hospital, User, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function AuthPage() {
@@ -23,73 +24,75 @@ export default function AuthPage() {
       router.push('/dashboard');
     }
   };
-  
-  const AnimatedIcon = ({ icon: Icon, className, animation }: any) => (
-    <Icon className={cn("absolute text-primary/10", className, animation)} />
-  );
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden p-6 bg-background">
-      <AnimatedIcon icon={Droplet} className="h-24 w-24 top-1/4 left-1/4" animation="animate-float-1" />
-      <AnimatedIcon icon={Heart} className="h-20 w-20 top-1/2 right-1/4" animation="animate-float-2" />
-      <AnimatedIcon icon={Activity} className="h-16 w-16 bottom-1/4 left-1/3" animation="animate-float-3" />
-      <AnimatedIcon icon={Plus} className="h-12 w-12 bottom-1/3 right-1/3" animation="animate-float-1" />
-      <AnimatedIcon icon={Droplet} className="h-28 w-28 top-3/4 left-1/2" animation="animate-float-2" />
-      <AnimatedIcon icon={Heart} className="h-10 w-10 top-1/3 right-1/2" animation="animate-float-3" />
+    <div className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
+      <div className="w-full max-w-4xl rounded-xl border bg-card text-card-foreground shadow-xl overflow-hidden grid md:grid-cols-2">
 
-      <Card className="w-full max-w-sm z-10 shadow-xl">
-        <CardHeader className="text-center">
-          <div className="flex items-center justify-center gap-4 mb-2">
-            <Droplet className="h-12 w-12 text-primary" fill="currentColor" />
-            <h1 className="text-4xl font-bold text-primary font-headline">
-              HeroDrop+
-            </h1>
-          </div>
-          <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your portal.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <Label>Select your role</Label>
-            <RadioGroup defaultValue="donor" onValueChange={setRole} className="grid grid-cols-2 gap-4 pt-1">
-              <Label htmlFor="role-donor" className={cn("relative flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", role === 'donor' && 'border-primary')}>
-                <RadioGroupItem value="donor" id="role-donor" className="sr-only" />
-                <User className="h-12 w-12 mb-2" />
-                <span className="font-semibold">Donor</span>
-                {role === 'donor' && <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-4 w-4" /></div>}
-              </Label>
-              <Label htmlFor="role-admin" className={cn("relative flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", role === 'admin' && 'border-primary')}>
-                <RadioGroupItem value="admin" id="role-admin" className="sr-only" />
-                <Hospital className="h-12 w-12 mb-2" />
-                <span className="font-semibold">Admin</span>
-                {role === 'admin' && <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-4 w-4" /></div>}
-              </Label>
-            </RadioGroup>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" required />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required />
-          </div>
-          <Button onClick={handleLogin} className="w-full" size="lg">
-            Login
-          </Button>
-          <Button variant="outline" className="w-full" size="lg">
-            Login with Google
-          </Button>
-          <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="underline font-semibold text-primary">
-              Sign up
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="relative hidden md:block">
+            <Image 
+                src="https://placehold.co/800x1000.png"
+                alt="A smiling blood donor giving a thumbs up"
+                width={800}
+                height={1000}
+                className="h-full w-full object-cover"
+                data-ai-hint="smiling blood donor"
+            />
+            <div className="absolute inset-0 bg-primary/20"></div>
+            <div className="absolute inset-0 flex flex-col justify-end p-12 text-white bg-gradient-to-t from-black/50 to-transparent">
+                <h2 className="text-4xl font-bold font-headline leading-tight">Join a community of lifesavers.</h2>
+                <p className="mt-4 text-lg max-w-prose">Every drop counts. Your donation can save up to three lives. Become a hero today.</p>
+            </div>
+        </div>
+
+        <div className="flex flex-col justify-center p-8 lg:p-12">
+            <div className="flex items-center justify-center gap-4 mb-6">
+                <Droplet className="h-10 w-10 text-primary" fill="currentColor" />
+                <h1 className="text-3xl font-bold text-primary font-headline">HeroDrop+</h1>
+            </div>
+            <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold font-headline tracking-tight">Welcome Back</h2>
+                <p className="text-muted-foreground">Select your role and sign in to continue.</p>
+            </div>
+
+            <div className="grid gap-4">
+                <div className="grid gap-2">
+                    <Label>Select your role</Label>
+                    <RadioGroup defaultValue="donor" onValueChange={setRole} className="grid grid-cols-2 gap-4 pt-1">
+                    <Label htmlFor="role-donor" className={cn("relative flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", role === 'donor' && 'border-primary')}>
+                        <RadioGroupItem value="donor" id="role-donor" className="sr-only" />
+                        <User className="h-12 w-12 mb-2" />
+                        <span className="font-semibold">Donor</span>
+                        {role === 'donor' && <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-4 w-4" /></div>}
+                    </Label>
+                    <Label htmlFor="role-admin" className={cn("relative flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", role === 'admin' && 'border-primary')}>
+                        <RadioGroupItem value="admin" id="role-admin" className="sr-only" />
+                        <Hospital className="h-12 w-12 mb-2" />
+                        <span className="font-semibold">Admin</span>
+                        {role === 'admin' && <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-4 w-4" /></div>}
+                    </Label>
+                    </RadioGroup>
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" placeholder="m@example.com" required />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input id="password" type="password" required />
+                </div>
+                <Button onClick={handleLogin} className="w-full" size="lg">
+                    Login
+                </Button>
+                <div className="mt-4 text-center text-sm">
+                    Don&apos;t have an account?{" "}
+                    <Link href="/signup" className="underline font-semibold text-primary">
+                    Sign up
+                    </Link>
+                </div>
+            </div>
+        </div>
+      </div>
     </div>
   );
 }
