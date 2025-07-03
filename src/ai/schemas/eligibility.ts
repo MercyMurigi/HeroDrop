@@ -4,24 +4,11 @@
 import {z} from 'zod';
 
 export const CheckEligibilityInputSchema = z.object({
-    feelingWell: z.enum(['yes', 'no']),
-    fever: z.enum(['yes', 'no']),
-    weightLoss: z.enum(['yes', 'no']),
-    malaria: z.enum(['yes', 'no']),
-    typhoid: z.enum(['yes', 'no']),
-    surgery: z.enum(['yes', 'no']),
     hiv: z.enum(['yes', 'no']),
-    sti: z.enum(['yes', 'no']),
-    covid: z.enum(['yes', 'no']),
     medication: z.enum(['yes', 'no']),
     medicationList: z.string().optional(),
-    vaccine: z.enum(['yes', 'no']),
     pregnant: z.enum(['yes', 'no']),
-    gaveBirth: z.enum(['yes', 'no']),
     breastfeeding: z.enum(['yes', 'no']),
-    newPartner: z.enum(['yes', 'no']),
-    injectedDrugs: z.enum(['yes', 'no']),
-    paidForBlood: z.enum(['yes', 'no']),
 });
 export type CheckEligibilityInput = z.infer<typeof CheckEligibilityInputSchema>;
 
