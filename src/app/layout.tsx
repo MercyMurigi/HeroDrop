@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const isLoginPage = pathname === '/' || pathname === '/signup';
+  const isAuthPage = pathname === '/' || pathname === '/signup';
   const isAdminPage = pathname.startsWith('/admin');
 
   return (
@@ -28,10 +28,10 @@ export default function RootLayout({
         <meta name="description" content={String(metadata.description)} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased bg-background">
-        {isLoginPage || isAdminPage ? children : <MainLayout>{children}</MainLayout>}
+        {isAuthPage || isAdminPage ? children : <MainLayout>{children}</MainLayout>}
         <Toaster />
       </body>
     </html>
