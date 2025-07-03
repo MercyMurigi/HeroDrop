@@ -4,7 +4,7 @@
 import { useState, useReducer, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Coins, HeartPulse, ShieldCheck, Stethoscope, ClipboardCheck, Loader2, ArrowRight, Ticket, Clock, Info, Package, Gift, Pill, Smile, ShoppingBag, MapPin, Tag } from 'lucide-react';
+import { Coins, HeartPulse, ShieldCheck, Stethoscope, ClipboardCheck, Loader2, ArrowRight, Ticket, Clock, Info, Package, Gift, Pill, Smile, ShoppingBag, MapPin, Tag, Send } from 'lucide-react';
 import Image from 'next/image';
 import {
   Dialog,
@@ -64,22 +64,27 @@ type RedemptionDetails = {
   reasoning: string;
 };
 
-// State management with a reducer for more robust state transitions
+// A single state object to manage the entire dialog flow atomically
 type DialogState = {
   isDialogOpen: boolean;
-  dialogStep: 'selectLocation' | 'confirmRedemption' | 'idle';
+  step: 'selectLocation' | 'confirmRedemption' | 'idle';
   status: 'idle' | 'processing' | 'success' | 'error';
   selectedItem: RedeemableItem | null;
   selectedLocation: Facility | Vendor | null;
+  // Details are now part of the main state, only populated when ready
   redemptionDetails: RedemptionDetails | null;
-  timeSuggestion: { suggestion: string; reasoning: string; loading: boolean };
+  timeSuggestion: {
+    suggestion: string;
+    reasoning: string;
+    loading: boolean;
+  };
 };
 
 type DialogAction =
   | { type: 'OPEN_DIALOG'; payload: RedeemableItem }
   | { type: 'CLOSE_DIALOG' }
   | { type: 'SELECT_LOCATION'; payload: Facility | Vendor | null }
-  | { type: 'START_CONFIRMATION' }
+  | { type: 'START_CONFIRMATION_PROCESS' }
   | { type: 'CONFIRMATION_SUCCESS'; payload: RedemptionDetails }
   | { type: 'CONFIRMATION_FAIL' }
   | { type: 'START_TIME_SUGGESTION' }
@@ -87,9 +92,10 @@ type DialogAction =
   | { type: 'TIME_SUGGESTION_FAIL' }
   | { type: 'FINISH_REDEMPTION' };
 
+
 const initialState: DialogState = {
   isDialogOpen: false,
-  dialogStep: 'idle',
+  step: 'idle',
   status: 'idle',
   selectedItem: null,
   selectedLocation: null,
@@ -103,24 +109,24 @@ function dialogReducer(state: DialogState, action: DialogAction): DialogState {
       return {
         ...initialState,
         isDialogOpen: true,
-        dialogStep: 'selectLocation',
+        step: 'selectLocation',
         selectedItem: action.payload,
       };
     case 'CLOSE_DIALOG':
       return initialState;
     case 'SELECT_LOCATION':
       return { ...state, selectedLocation: action.payload };
-    case 'START_CONFIRMATION':
+    case 'START_CONFIRMATION_PROCESS':
       return { ...state, status: 'processing' };
     case 'CONFIRMATION_SUCCESS':
-      return {
-        ...state,
-        status: 'success',
-        dialogStep: 'confirmRedemption',
-        redemptionDetails: action.payload,
-      };
+        return {
+            ...state,
+            status: 'success',
+            step: 'confirmRedemption',
+            redemptionDetails: action.payload,
+        };
     case 'CONFIRMATION_FAIL':
-      return { ...state, status: 'error' };
+        return { ...state, status: 'idle' }; // Reset status to allow retry
     case 'START_TIME_SUGGESTION':
       return { ...state, timeSuggestion: { ...state.timeSuggestion, loading: true } };
     case 'TIME_SUGGESTION_SUCCESS':
@@ -176,46 +182,43 @@ export default function RedeemPage() {
 
   const handleProceedToConfirmation = async () => {
     if (!state.selectedItem || !state.selectedLocation) return;
-    dispatch({ type: 'START_CONFIRMATION' });
+    dispatch({ type: 'START_CONFIRMATION_PROCESS' });
 
     try {
-      const code = `${state.selectedItem.title.substring(0, 4).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      
-      const redemptionDetails: RedemptionDetails = {
-        code,
-        suggestedTime: 'Check opening hours',
-        reasoning: 'Please confirm operating hours with the location directly.',
-      };
+        const code = `${state.selectedItem.title.substring(0, 4).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        
+        // Base details, always generated
+        const details: RedemptionDetails = {
+            code,
+            suggestedTime: 'Check opening hours',
+            reasoning: 'Please confirm operating hours with the location directly.',
+        };
 
-      dispatch({ type: 'CONFIRMATION_SUCCESS', payload: redemptionDetails });
-
-    } catch (error) {
-      console.error("Failed to generate redemption details:", error);
-      toast({ variant: 'destructive', title: 'An Error Occurred', description: 'Could not prepare your redemption details. Please try again.' });
-      dispatch({ type: 'CONFIRMATION_FAIL' });
-      handleDialogClose(false);
-    }
-  };
-  
-  useEffect(() => {
-    if (state.dialogStep === 'confirmRedemption' && state.selectedItem?.category === 'service' && state.selectedLocation) {
-        const fetchSuggestion = async () => {
-            dispatch({ type: 'START_TIME_SUGGESTION' });
+        // If it's a service, try to get a better time suggestion
+        if (state.selectedItem.category === 'service' && state.selectedLocation) {
             try {
                 const result = await suggestRedemptionTime({
                     facilityName: state.selectedLocation!.name,
                     serviceName: state.selectedItem!.title
                 });
-                dispatch({ type: 'TIME_SUGGESTION_SUCCESS', payload: { suggestion: result.suggestedTime, reasoning: result.reasoning } });
+                details.suggestedTime = result.suggestedTime;
+                details.reasoning = result.reasoning;
             } catch (aiError) {
                 console.error('AI suggestion failed, using default.', aiError);
-                dispatch({ type: 'TIME_SUGGESTION_FAIL' });
+                // The default message is already set, so we can just continue
             }
-        };
-        fetchSuggestion();
-    }
-  }, [state.dialogStep, state.selectedItem, state.selectedLocation]);
+        }
+        
+        // This now reliably dispatches with the complete data package.
+        dispatch({ type: 'CONFIRMATION_SUCCESS', payload: details });
 
+    } catch (error) {
+        console.error("Failed to generate redemption details:", error);
+        toast({ variant: 'destructive', title: 'An Error Occurred', description: 'Could not prepare your redemption details. Please try again.' });
+        dispatch({ type: 'CONFIRMATION_FAIL' });
+    }
+  };
+  
   const handleConfirmRedemption = async () => {
     if (!state.selectedItem || !state.selectedLocation || !state.redemptionDetails) return;
     dispatch({ type: 'FINISH_REDEMPTION' });
@@ -259,7 +262,7 @@ export default function RedeemPage() {
     const selectedItem = state.selectedItem;
     const selectedLocation = state.selectedLocation;
 
-    if (state.dialogStep === 'selectLocation') {
+    if (state.step === 'selectLocation') {
       return (
         <>
           <DialogHeader className="flex-shrink-0">
@@ -285,7 +288,7 @@ export default function RedeemPage() {
       );
     }
 
-    if (state.dialogStep === 'confirmRedemption' && state.redemptionDetails && selectedLocation) {
+    if (state.step === 'confirmRedemption' && state.redemptionDetails && selectedLocation) {
         return (
              <>
               <DialogHeader>
@@ -323,21 +326,21 @@ export default function RedeemPage() {
                     <Clock className="h-6 w-6 text-primary" />
                     <div>
                       <p className="font-semibold text-primary">Suggested Visit Time</p>
-                      {state.timeSuggestion.loading ? <Skeleton className="h-7 w-48 mt-1" /> : <div className="text-lg font-bold">{state.timeSuggestion.suggestion || state.redemptionDetails.suggestedTime}</div>}
+                       <div className="text-lg font-bold">{state.redemptionDetails.suggestedTime}</div>
                     </div>
                   </div>
-                  {(!state.timeSuggestion.loading && (state.timeSuggestion.reasoning || state.redemptionDetails.reasoning)) && (
+                  {(state.redemptionDetails.reasoning) && (
                     <div className="flex items-start gap-3 mt-2 text-sm text-muted-foreground">
                         <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <div>{state.timeSuggestion.reasoning || state.redemptionDetails.reasoning}</div>
+                        <div>{state.redemptionDetails.reasoning}</div>
                     </div>
                   )}
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex-shrink-0 border-t pt-4 mt-auto">
                 <Button type="button" variant="secondary" onClick={() => dispatch({ type: 'OPEN_DIALOG', payload: selectedItem })}>Back</Button>
                 <Button onClick={handleConfirmRedemption} disabled={state.status === 'processing'}>
-                  {state.status === 'processing' ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...</>) : (`Confirm & Redeem for ${selectedItem.cost} DT`)}
+                  {state.status === 'processing' ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</>) : (<><Send className="mr-2 h-4 w-4" /> Send Voucher & Complete</>)}
                 </Button>
               </DialogFooter>
             </>
@@ -433,10 +436,12 @@ export default function RedeemPage() {
       </div>
 
       <Dialog open={state.isDialogOpen} onOpenChange={handleDialogClose}>
-        <DialogContent className="sm:max-w-2xl h-[80vh] sm:h-auto sm:max-h-[80vh] flex flex-col">
+        <DialogContent className="sm:max-w-2xl h-[90vh] sm:h-auto sm:max-h-[90vh] flex flex-col">
           {renderDialogContent()}
         </DialogContent>
       </Dialog>
     </>
   );
 }
+
+    
