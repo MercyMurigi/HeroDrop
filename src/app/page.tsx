@@ -30,11 +30,11 @@ export default function AuthPage() {
   return (
     <div className="relative min-h-screen w-full">
       <Image
-        src="https://images.unsplash.com/photo-1627843444992-0543e0618035"
-        alt="A close-up of a person donating blood, with a medical professional in blue gloves attending."
+        src="https://images.unsplash.com/photo-1615461066159-fea0960485d5?q=80&w=1016&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        alt="Doctor listening to a patient's heartbeat with a stethoscope."
         fill
         className="object-cover"
-        data-ai-hint="blood donation"
+        data-ai-hint="doctor patient"
       />
       <div className="absolute inset-0 bg-black/40 z-0" />
 
