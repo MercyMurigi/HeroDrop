@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Coins, HeartPulse, ShieldCheck, Stethoscope, ClipboardCheck, Loader2, ArrowRight, Ticket, Clock, Info, Package, Gift, Pill, Smile, ShoppingBag } from 'lucide-react';
+import { Coins, HeartPulse, ShieldCheck, Stethoscope, ClipboardCheck, Loader2, ArrowRight, Ticket, Clock, Info, Package, Gift, Pill, Smile, ShoppingBag, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import {
   Dialog,
@@ -21,19 +21,30 @@ import { generateSmsNotification } from '@/ai/flows/generate-sms-notification';
 import { suggestRedemptionTime } from '@/ai/flows/suggest-redemption-time';
 import type { FindFacilitiesOutput } from '@/ai/schemas/facilities';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PartnerVendorFinder, type Vendor } from '@/components/partner-vendor-finder';
 
-const healthServices = [
-  { title: 'General Checkup', cost: 60, icon: Stethoscope, description: "A comprehensive health checkup with a general practitioner.", image: "https://placehold.co/600x400.png", hint: "doctor checkup" },
-  { title: 'Free Lab Test', cost: 100, icon: HeartPulse, description: "Includes tests for malaria, hemoglobin levels, and more.", image: "https://placehold.co/600x400.png", hint: "lab test" },
-  { title: 'Mental Health Session', cost: 80, icon: Smile, description: "A private session with a certified mental health professional.", image: "https://placehold.co/600x400.png", hint: "counseling session" },
-  { title: 'Queue Priority (Fast-Pass)', cost: 30, icon: ShieldCheck, description: "Skip the line and get priority access at partner facilities.", image: "https://placehold.co/600x400.png", hint: "hospital queue" },
-  { title: "Women's Health Screening", cost: 150, icon: ClipboardCheck, description: "Includes essential screenings like pap smear and breast exam.", image: "https://placehold.co/600x400.png", hint: "health screening" },
+type RedeemableItem = {
+  title: string;
+  cost: number;
+  icon: React.ElementType;
+  description: string;
+  image: string;
+  hint: string;
+  category: 'service' | 'product';
+};
+
+const healthServices: RedeemableItem[] = [
+  { title: 'General Checkup', cost: 60, icon: Stethoscope, description: "A comprehensive health checkup with a general practitioner.", image: "https://placehold.co/600x400.png", hint: "doctor checkup", category: 'service' },
+  { title: 'Free Lab Test', cost: 100, icon: HeartPulse, description: "Includes tests for malaria, hemoglobin levels, and more.", image: "https://placehold.co/600x400.png", hint: "lab test", category: 'service' },
+  { title: 'Mental Health Session', cost: 80, icon: Smile, description: "A private session with a certified mental health professional.", image: "https://placehold.co/600x400.png", hint: "counseling session", category: 'service' },
+  { title: 'Queue Priority (Fast-Pass)', cost: 30, icon: ShieldCheck, description: "Skip the line and get priority access at partner facilities.", image: "https://placehold.co/600x400.png", hint: "hospital queue", category: 'service' },
+  { title: "Women's Health Screening", cost: 150, icon: ClipboardCheck, description: "Includes essential screenings like pap smear and breast exam.", image: "https://placehold.co/600x400.png", hint: "health screening", category: 'service' },
 ];
 
-const marketplaceItems = [
-  { title: 'Sanitary Pads', cost: 50, icon: Package, description: "A pack of high-quality sanitary pads from our partner brands.", image: "https://placehold.co/600x400.png", hint: "sanitary pads" },
-  { title: 'Wellness Kit', cost: 120, icon: Gift, description: "A curated wellness kit with essential vitamins and health products.", image: "https://placehold.co/600x400.png", hint: "wellness kit" },
-  { title: 'Over-the-Counter Meds', cost: 40, icon: Pill, description: "Redeem for common OTC medications like painkillers or allergy relief.", image: "https://placehold.co/600x400.png", hint: "medication pills" },
+const marketplaceItems: RedeemableItem[] = [
+  { title: 'Sanitary Pads', cost: 50, icon: Package, description: "A pack of high-quality sanitary pads from our partner brands.", image: "https://placehold.co/600x400.png", hint: "sanitary pads", category: 'product' },
+  { title: 'Wellness Kit', cost: 120, icon: Gift, description: "A curated wellness kit with essential vitamins and health products.", image: "https://placehold.co/600x400.png", hint: "wellness kit", category: 'product' },
+  { title: 'Over-the-Counter Meds', cost: 40, icon: Pill, description: "Redeem for common OTC medications like painkillers or allergy relief.", image: "https://placehold.co/600x400.png", hint: "medication pills", category: 'product' },
 ];
 
 type Transaction = {
@@ -42,7 +53,7 @@ type Transaction = {
   amount: number;
   type: 'credit' | 'debit';
 };
-type RedeemableItem = (typeof healthServices)[0];
+
 type Facility = FindFacilitiesOutput['facilities'][0];
 
 export default function RedeemPage() {
@@ -50,9 +61,9 @@ export default function RedeemPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedItem, setSelectedItem] = useState<RedeemableItem | null>(null);
-  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<Facility | Vendor | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogStep, setDialogStep] = useState<'selectFacility' | 'confirmRedemption'>('selectFacility');
+  const [dialogStep, setDialogStep] = useState<'selectLocation' | 'confirmRedemption'>('selectLocation');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [redemptionDetails, setRedemptionDetails] = useState<{ code: string; suggestedTime: string; reasoning: string } | null>(null);
@@ -79,31 +90,39 @@ export default function RedeemPage() {
       return;
     }
     setSelectedItem(item);
-    setSelectedFacility(null);
-    setDialogStep('selectFacility');
+    setSelectedLocation(null);
+    setDialogStep('selectLocation');
     setRedemptionDetails(null);
     setIsDialogOpen(true);
   };
 
-  const handleFacilitySelectedAndSuggestTime = async () => {
-    if (!selectedItem || !selectedFacility) return;
+  const proceedToConfirmation = async () => {
+    if (!selectedItem || !selectedLocation) return;
     setIsGenerating(true);
     try {
-      const result = await suggestRedemptionTime({
-        facilityName: selectedFacility.name,
-        serviceName: selectedItem.title,
-      });
-      
       const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      let suggestionResult = {
+        suggestedTime: "Anytime during opening hours",
+        reasoning: "This is a product voucher. Please check the partner store for specific operating hours before visiting."
+      };
 
-      setRedemptionDetails({ code, ...result });
+      if (selectedItem.category === 'service') {
+        const facility = selectedLocation as Facility;
+        const result = await suggestRedemptionTime({
+          facilityName: facility.name,
+          serviceName: selectedItem.title,
+        });
+        suggestionResult = result;
+      }
+      
+      setRedemptionDetails({ code, ...suggestionResult });
       setDialogStep('confirmRedemption');
     } catch (error) {
       console.error("Failed to get suggestion:", error);
       toast({
         variant: "destructive",
-        title: "Suggestion Failed",
-        description: "Could not get a time suggestion from our AI. Please try again.",
+        title: "Action Failed",
+        description: "Could not generate redemption details. Please try again.",
       });
     } finally {
       setIsGenerating(false);
@@ -111,7 +130,7 @@ export default function RedeemPage() {
   };
 
   const handleConfirmRedemption = async () => {
-    if (!selectedItem || !selectedFacility || !redemptionDetails) return;
+    if (!selectedItem || !selectedLocation || !redemptionDetails) return;
     setIsConfirming(true);
     try {
       const userName = 'Jane Donor';
@@ -156,26 +175,30 @@ export default function RedeemPage() {
   const renderDialogContent = () => {
     if (!selectedItem) return null;
 
-    if (dialogStep === 'selectFacility') {
+    if (dialogStep === 'selectLocation') {
       return (
         <>
           <DialogHeader>
             <DialogTitle className="font-headline text-2xl">Redeem: {selectedItem.title}</DialogTitle>
             <DialogDescription>
-              Step 1: Select a facility to redeem this at.
+              Step 1: Select a location to redeem this {selectedItem.category}.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-             <FacilityFinder onFacilitySelect={setSelectedFacility} selectedFacility={selectedFacility} />
+            {selectedItem.category === 'service' ? (
+                <FacilityFinder onFacilitySelect={(facility) => setSelectedLocation(facility)} selectedFacility={selectedLocation as Facility | null} />
+            ) : (
+                <PartnerVendorFinder onVendorSelect={(vendor) => setSelectedLocation(vendor)} selectedVendor={selectedLocation as Vendor | null} />
+            )}
           </div>
           <DialogFooter>
              <DialogClose asChild>
                 <Button type="button" variant="secondary">Cancel</Button>
             </DialogClose>
-            <Button onClick={handleFacilitySelectedAndSuggestTime} disabled={!selectedFacility || isGenerating}>
+            <Button onClick={proceedToConfirmation} disabled={!selectedLocation || isGenerating}>
               {isGenerating ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Getting Suggestion...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...
                 </>
               ) : (
                 <>Next <ArrowRight className="ml-2 h-4 w-4" /></>
@@ -186,7 +209,7 @@ export default function RedeemPage() {
       );
     }
 
-    if (dialogStep === 'confirmRedemption' && redemptionDetails) {
+    if (dialogStep === 'confirmRedemption' && redemptionDetails && selectedLocation) {
         return (
              <>
               <DialogHeader>
@@ -203,6 +226,16 @@ export default function RedeemPage() {
                         <p className="text-4xl font-bold tracking-widest text-primary">{redemptionDetails.code}</p>
                     </div>
                 </div>
+
+                <div className="rounded-lg border p-4 space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Redemption Location</p>
+                    <p className="font-semibold">{selectedLocation.name}</p>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0" />
+                        <span>{selectedLocation.address}</span>
+                    </div>
+                </div>
+
                 <div className="rounded-lg border p-4">
                     <div className="flex items-center gap-3">
                         <Clock className="h-6 w-6 text-primary"/>
@@ -218,7 +251,7 @@ export default function RedeemPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" variant="secondary" onClick={() => setDialogStep('selectFacility')}>Back</Button>
+                <Button type="button" variant="secondary" onClick={() => setDialogStep('selectLocation')}>Back</Button>
                 <Button onClick={handleConfirmRedemption} disabled={isConfirming}>
                   {isConfirming ? (
                     <>
