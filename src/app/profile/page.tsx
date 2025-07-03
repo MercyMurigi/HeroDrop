@@ -69,6 +69,10 @@ export default function ProfilePage() {
                                     <Label htmlFor="kinPhone">Phone Number</Label>
                                     <Input id="kinPhone" defaultValue="+254 787 654 321" />
                                 </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="kinIdNumber">National ID Number</Label>
+                                    <Input id="kinIdNumber" defaultValue="87654321" />
+                                </div>
                             </div>
                         </div>
 

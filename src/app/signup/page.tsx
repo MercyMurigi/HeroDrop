@@ -60,6 +60,10 @@ export default function SignupPage() {
                         <Label htmlFor="kin-phone">Phone Number</Label>
                         <Input id="kin-phone" type="tel" placeholder="+254 712 345 678" required />
                     </div>
+                    <div className="grid gap-2 col-span-2">
+                        <Label htmlFor="kin-id-number">National ID Number</Label>
+                        <Input id="kin-id-number" placeholder="87654321" required />
+                    </div>
                   </div>
               </div>
 
