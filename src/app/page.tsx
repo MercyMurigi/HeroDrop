@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import Link from 'next/link';
 import { Droplet, Heart, Activity, Plus, Hospital, User, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -10,9 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -25,11 +23,6 @@ export default function AuthPage() {
       router.push('/dashboard');
     }
   };
-
-  const handleSignup = () => {
-    // For now, just go to the dashboard. In a real app, this would handle account creation.
-    router.push('/dashboard');
-  }
   
   const AnimatedIcon = ({ icon: Icon, className, animation }: any) => (
     <Icon className={cn("absolute text-primary/10", className, animation)} />
@@ -37,133 +30,66 @@ export default function AuthPage() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden p-6 bg-background">
-        <AnimatedIcon icon={Droplet} className="h-24 w-24 top-1/4 left-1/4" animation="animate-float-1" />
-        <AnimatedIcon icon={Heart} className="h-20 w-20 top-1/2 right-1/4" animation="animate-float-2" />
-        <AnimatedIcon icon={Activity} className="h-16 w-16 bottom-1/4 left-1/3" animation="animate-float-3" />
-        <AnimatedIcon icon={Plus} className="h-12 w-12 bottom-1/3 right-1/3" animation="animate-float-1" />
-        <AnimatedIcon icon={Droplet} className="h-28 w-28 top-3/4 left-1/2" animation="animate-float-2" />
-        <AnimatedIcon icon={Heart} className="h-10 w-10 top-1/3 right-1/2" animation="animate-float-3" />
+      <AnimatedIcon icon={Droplet} className="h-24 w-24 top-1/4 left-1/4" animation="animate-float-1" />
+      <AnimatedIcon icon={Heart} className="h-20 w-20 top-1/2 right-1/4" animation="animate-float-2" />
+      <AnimatedIcon icon={Activity} className="h-16 w-16 bottom-1/4 left-1/3" animation="animate-float-3" />
+      <AnimatedIcon icon={Plus} className="h-12 w-12 bottom-1/3 right-1/3" animation="animate-float-1" />
+      <AnimatedIcon icon={Droplet} className="h-28 w-28 top-3/4 left-1/2" animation="animate-float-2" />
+      <AnimatedIcon icon={Heart} className="h-10 w-10 top-1/3 right-1/2" animation="animate-float-3" />
 
-        <div className="mx-auto grid w-full max-w-[400px] gap-6 z-10">
-          <div className="grid gap-2 text-center">
-            <div className="flex items-center justify-center gap-4 mb-2">
-                <Droplet className="h-12 w-12 text-primary" fill="currentColor" />
-                <h1 className="text-4xl font-bold text-primary font-headline">
-                    HeroDrop+
-                </h1>
-            </div>
-            <h2 className="text-3xl font-bold font-headline">Your Drop. Your Health. Your Future</h2>
+      <Card className="w-full max-w-sm z-10 shadow-xl">
+        <CardHeader className="text-center">
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <Droplet className="h-12 w-12 text-primary" fill="currentColor" />
+            <h1 className="text-4xl font-bold text-primary font-headline">
+              HeroDrop+
+            </h1>
           </div>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login">
-              <Card className="border-none shadow-none bg-transparent">
-                <CardHeader className="text-left px-1">
-                  <CardTitle className="text-2xl">Welcome Back</CardTitle>
-                  <CardDescription>
-                    Enter your credentials to access your portal.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4 px-1">
-                  <div className="grid gap-2">
-                    <Label>Select your role</Label>
-                    <RadioGroup defaultValue="donor" onValueChange={setRole} className="grid grid-cols-2 gap-4 pt-1">
-                        <Label htmlFor="role-donor" className={cn("relative flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", role === 'donor' && 'border-primary')}>
-                            <RadioGroupItem value="donor" id="role-donor" className="sr-only" />
-                            <User className="h-12 w-12 mb-2" />
-                            <span className="font-semibold">Donor</span>
-                            {role === 'donor' && <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-4 w-4" /></div>}
-                        </Label>
-                        <Label htmlFor="role-admin" className={cn("relative flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", role === 'admin' && 'border-primary')}>
-                            <RadioGroupItem value="admin" id="role-admin" className="sr-only" />
-                            <Hospital className="h-12 w-12 mb-2" />
-                            <span className="font-semibold">Admin</span>
-                             {role === 'admin' && <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-4 w-4" /></div>}
-                        </Label>
-                    </RadioGroup>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="m@example.com" required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" required />
-                  </div>
-                  <Button onClick={handleLogin} className="w-full" size="lg">
-                    Login
-                  </Button>
-                  <Button variant="outline" className="w-full" size="lg">
-                    Login with Google
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="signup">
-               <Card className="border-none shadow-none bg-transparent">
-                <CardHeader className="text-left px-1">
-                  <CardTitle className="text-2xl">Create an Account</CardTitle>
-                  <CardDescription>
-                    Fill in your details to join our community of lifesavers.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4 px-1">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="full-name">Full Name</Label>
-                            <Input id="full-name" placeholder="John Doe" required />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="id-number">National ID</Label>
-                            <Input id="id-number" placeholder="12345678" required />
-                        </div>
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="phone-number">Phone Number</Label>
-                        <Input id="phone-number" type="tel" placeholder="+254 712 345 678" required />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="new-password">Password</Label>
-                        <Input id="new-password" type="password" required />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="blood-type">Blood Type (if known)</Label>
-                        <Select>
-                            <SelectTrigger id="blood-type">
-                                <SelectValue placeholder="Select your blood type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="A+">A+</SelectItem>
-                                <SelectItem value="A-">A-</SelectItem>
-                                <SelectItem value="B+">B+</SelectItem>
-                                <SelectItem value="B-">B-</SelectItem>
-                                <SelectItem value="AB+">AB+</SelectItem>
-                                <SelectItem value="AB-">AB-</SelectItem>
-                                <SelectItem value="O+">O+</SelectItem>
-                                <SelectItem value="O-">O-</SelectItem>
-                                <SelectItem value="unknown">I don't know</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="items-top flex space-x-2 pt-2">
-                        <Checkbox id="eligibility" />
-                        <div className="grid gap-1.5 leading-none">
-                            <Label htmlFor="eligibility" className="font-normal text-muted-foreground">
-                                I confirm I meet basic eligibility criteria (age 16-65, over 50kg).
-                            </Label>
-                        </div>
-                    </div>
-                    <Button onClick={handleSignup} className="w-full" size="lg">
-                      Create Account
-                    </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+          <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
+          <CardDescription>
+            Enter your credentials to access your portal.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-2">
+            <Label>Select your role</Label>
+            <RadioGroup defaultValue="donor" onValueChange={setRole} className="grid grid-cols-2 gap-4 pt-1">
+              <Label htmlFor="role-donor" className={cn("relative flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", role === 'donor' && 'border-primary')}>
+                <RadioGroupItem value="donor" id="role-donor" className="sr-only" />
+                <User className="h-12 w-12 mb-2" />
+                <span className="font-semibold">Donor</span>
+                {role === 'donor' && <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-4 w-4" /></div>}
+              </Label>
+              <Label htmlFor="role-admin" className={cn("relative flex flex-col items-center justify-center rounded-lg border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", role === 'admin' && 'border-primary')}>
+                <RadioGroupItem value="admin" id="role-admin" className="sr-only" />
+                <Hospital className="h-12 w-12 mb-2" />
+                <span className="font-semibold">Admin</span>
+                {role === 'admin' && <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-4 w-4" /></div>}
+              </Label>
+            </RadioGroup>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" placeholder="m@example.com" required />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" type="password" required />
+          </div>
+          <Button onClick={handleLogin} className="w-full" size="lg">
+            Login
+          </Button>
+          <Button variant="outline" className="w-full" size="lg">
+            Login with Google
+          </Button>
+          <div className="mt-4 text-center text-sm">
+            Don&apos;t have an account?{" "}
+            <Link href="/signup" className="underline font-semibold text-primary">
+              Sign up
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
