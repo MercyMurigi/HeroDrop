@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Coins, HeartPulse, ShieldCheck, Stethoscope, ClipboardCheck, Loader2, ArrowRight, Ticket, Clock, Info, Package, Gift, Pill, Smile } from 'lucide-react';
+import { Coins, HeartPulse, ShieldCheck, Stethoscope, ClipboardCheck, Loader2, ArrowRight, Ticket, Clock, Info, Package, Gift, Pill, Smile, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
 import {
   Dialog,
@@ -14,18 +14,22 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FacilityFinder } from '@/components/facility-finder';
 import { useToast } from '@/hooks/use-toast';
 import { generateSmsNotification } from '@/ai/flows/generate-sms-notification';
 import { suggestRedemptionTime } from '@/ai/flows/suggest-redemption-time';
 import type { FindFacilitiesOutput } from '@/ai/schemas/facilities';
 
-const services = [
+const healthServices = [
   { title: 'General Checkup', cost: 60, icon: Stethoscope, description: "A comprehensive health checkup with a general practitioner.", image: "https://placehold.co/600x400.png", hint: "doctor checkup" },
   { title: 'Free Lab Test', cost: 100, icon: HeartPulse, description: "Includes tests for malaria, hemoglobin levels, and more.", image: "https://placehold.co/600x400.png", hint: "lab test" },
   { title: 'Mental Health Session', cost: 80, icon: Smile, description: "A private session with a certified mental health professional.", image: "https://placehold.co/600x400.png", hint: "counseling session" },
   { title: 'Queue Priority (Fast-Pass)', cost: 30, icon: ShieldCheck, description: "Skip the line and get priority access at partner facilities.", image: "https://placehold.co/600x400.png", hint: "hospital queue" },
   { title: "Women's Health Screening", cost: 150, icon: ClipboardCheck, description: "Includes essential screenings like pap smear and breast exam.", image: "https://placehold.co/600x400.png", hint: "health screening" },
+];
+
+const marketplaceItems = [
   { title: 'Sanitary Pads', cost: 50, icon: Package, description: "A pack of high-quality sanitary pads from our partner brands.", image: "https://placehold.co/600x400.png", hint: "sanitary pads" },
   { title: 'Wellness Kit', cost: 120, icon: Gift, description: "A curated wellness kit with essential vitamins and health products.", image: "https://placehold.co/600x400.png", hint: "wellness kit" },
   { title: 'Over-the-Counter Meds', cost: 40, icon: Pill, description: "Redeem for common OTC medications like painkillers or allergy relief.", image: "https://placehold.co/600x400.png", hint: "medication pills" },
@@ -37,13 +41,13 @@ type Transaction = {
   amount: number;
   type: 'credit' | 'debit';
 };
-type Service = typeof services[0];
+type RedeemableItem = (typeof healthServices)[0];
 type Facility = FindFacilitiesOutput['facilities'][0];
 
 export default function RedeemPage() {
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedItem, setSelectedItem] = useState<RedeemableItem | null>(null);
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogStep, setDialogStep] = useState<'selectFacility' | 'confirmRedemption'>('selectFacility');
@@ -62,16 +66,16 @@ export default function RedeemPage() {
     return transactions.reduce((acc, tx) => acc + tx.amount, 0);
   }, [transactions]);
 
-  const handleRedeemClick = (service: Service) => {
-    if (totalBalance < service.cost) {
+  const handleRedeemClick = (item: RedeemableItem) => {
+    if (totalBalance < item.cost) {
       toast({
         variant: 'destructive',
         title: 'Insufficient Balance',
-        description: `You need ${service.cost} DamuTokens to redeem this service.`,
+        description: `You need ${item.cost} DamuTokens to redeem this item.`,
       });
       return;
     }
-    setSelectedService(service);
+    setSelectedItem(item);
     setSelectedFacility(null);
     setDialogStep('selectFacility');
     setRedemptionDetails(null);
@@ -79,15 +83,15 @@ export default function RedeemPage() {
   };
 
   const handleFacilitySelectedAndSuggestTime = async () => {
-    if (!selectedService || !selectedFacility) return;
+    if (!selectedItem || !selectedFacility) return;
     setIsGenerating(true);
     try {
       const result = await suggestRedemptionTime({
         facilityName: selectedFacility.name,
-        serviceName: selectedService.title,
+        serviceName: selectedItem.title,
       });
       
-      const code = `${selectedService.title.substring(0, 4).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
       setRedemptionDetails({ code, ...result });
       setDialogStep('confirmRedemption');
@@ -104,7 +108,7 @@ export default function RedeemPage() {
   };
 
   const handleConfirmRedemption = async () => {
-    if (!selectedService || !selectedFacility || !redemptionDetails) return;
+    if (!selectedItem || !selectedFacility || !redemptionDetails) return;
     setIsConfirming(true);
     try {
       const userName = 'Jane Donor';
@@ -112,16 +116,16 @@ export default function RedeemPage() {
       await generateSmsNotification({
         notificationType: 'redemption',
         userName: userName,
-        tokenBalance: totalBalance - selectedService.cost,
-        serviceRedeemed: selectedService.title,
+        tokenBalance: totalBalance - selectedItem.cost,
+        serviceRedeemed: selectedItem.title,
         redemptionCode: redemptionDetails.code,
         suggestedTime: redemptionDetails.suggestedTime,
       });
 
       const newTransaction: Transaction = {
         date: new Date().toLocaleDateString('en-CA'),
-        description: `Redeemed: ${selectedService.title}`,
-        amount: -selectedService.cost,
+        description: `Redeemed: ${selectedItem.title}`,
+        amount: -selectedItem.cost,
         type: 'debit',
       };
       const updatedTransactions = [newTransaction, ...transactions];
@@ -147,15 +151,15 @@ export default function RedeemPage() {
   };
   
   const renderDialogContent = () => {
-    if (!selectedService) return null;
+    if (!selectedItem) return null;
 
     if (dialogStep === 'selectFacility') {
       return (
         <>
           <DialogHeader>
-            <DialogTitle className="font-headline text-2xl">Redeem: {selectedService.title}</DialogTitle>
+            <DialogTitle className="font-headline text-2xl">Redeem: {selectedItem.title}</DialogTitle>
             <DialogDescription>
-              Step 1: Select a facility to redeem this service at.
+              Step 1: Select a facility to redeem this at.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -218,7 +222,7 @@ export default function RedeemPage() {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...
                     </>
                   ) : (
-                    `Confirm & Redeem for ${selectedService.cost} DT`
+                    `Confirm & Redeem for ${selectedItem.cost} DT`
                   )}
                 </Button>
               </DialogFooter>
@@ -228,6 +232,34 @@ export default function RedeemPage() {
 
     return null;
   }
+  
+  const renderItemCard = (item: RedeemableItem) => (
+      <Card key={item.title} className="shadow-lg flex flex-col overflow-hidden group">
+          <div className="relative h-48 w-full">
+            <Image src={item.image} alt={item.title} layout="fill" objectFit="cover" className="transition-transform duration-300 group-hover:scale-105" data-ai-hint={item.hint} />
+          </div>
+          <CardHeader className="flex-grow">
+              <div className="flex justify-between items-start">
+                <CardTitle className="font-headline text-xl">{item.title}</CardTitle>
+                <div className="bg-primary/10 p-3 rounded-lg -mt-2">
+                  <item.icon className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+              <CardDescription>{item.description}</CardDescription>
+          </CardHeader>
+          <CardContent className="mt-auto pt-4 border-t">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Coins className="h-6 w-6 text-primary" />
+                <span className="text-2xl font-bold">{item.cost} DT</span>
+              </div>
+              <Button onClick={() => handleRedeemClick(item)} disabled={totalBalance < item.cost}>
+                Redeem Now
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+  )
 
   return (
     <>
@@ -243,35 +275,29 @@ export default function RedeemPage() {
           </div>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {services.map((service) => (
-            <Card key={service.title} className="shadow-lg flex flex-col overflow-hidden group">
-              <div className="relative h-48 w-full">
-                <Image src={service.image} alt={service.title} layout="fill" objectFit="cover" className="transition-transform duration-300 group-hover:scale-105" data-ai-hint={service.hint} />
-              </div>
-              <CardHeader className="flex-grow">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="font-headline text-xl">{service.title}</CardTitle>
-                    <div className="bg-primary/10 p-3 rounded-lg -mt-2">
-                      <service.icon className="h-6 w-6 text-primary" />
-                    </div>
-                  </div>
-                  <CardDescription>{service.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="mt-auto pt-4 border-t">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Coins className="h-6 w-6 text-primary" />
-                    <span className="text-2xl font-bold">{service.cost} DT</span>
-                  </div>
-                  <Button onClick={() => handleRedeemClick(service)} disabled={totalBalance < service.cost}>
-                    Redeem Now
-                  </Button>
+        <Tabs defaultValue="health-services" className="space-y-4">
+            <TabsList>
+                <TabsTrigger value="health-services">
+                    <Stethoscope className="mr-2" />
+                    Health Services
+                </TabsTrigger>
+                <TabsTrigger value="marketplace">
+                    <ShoppingBag className="mr-2" />
+                    Partner Marketplace
+                </TabsTrigger>
+            </TabsList>
+            <TabsContent value="health-services">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {healthServices.map(renderItemCard)}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+            </TabsContent>
+            <TabsContent value="marketplace">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {marketplaceItems.map(renderItemCard)}
+                </div>
+            </TabsContent>
+        </Tabs>
+
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
