@@ -2,11 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Coins, CalendarCheck, MapPin, Clock, Award, Droplets, HeartPulse, PlusCircle, MinusCircle, CalendarPlus, Shield, Star, Heart } from 'lucide-react';
+import { Coins, MapPin, Clock, Award, Droplets, HeartPulse, PlusCircle, MinusCircle, CalendarPlus, Shield, Star, Heart, MoreHorizontal } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const stats = [
   { title: "DamuTokens Balance", value: "130 DT", icon: Coins, color: "text-primary", note: "+100 from last donation" },
@@ -21,7 +35,7 @@ const badges = [
     { name: "Superstar Donor", icon: Star, color: "text-chart-5" },
 ];
 
-const transactions = [
+const initialTransactions = [
     { date: '2024-07-22', description: 'Completed blood donation', amount: 100, type: 'credit' },
     { date: '2024-07-21', description: 'Sign-up & Pledge', amount: 10, type: 'credit' },
     { date: '2024-07-15', description: 'Refer a friend: Alex', amount: 30, type: 'credit' },
@@ -37,6 +51,10 @@ type UpcomingAppointment = {
 
 export default function DashboardPage() {
   const [appointment, setAppointment] = useState<UpcomingAppointment | null>(null);
+  const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
+  const [transactions, setTransactions] = useState(initialTransactions);
+  const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     const storedAppointment = localStorage.getItem('upcomingAppointment');
@@ -44,6 +62,26 @@ export default function DashboardPage() {
       setAppointment(JSON.parse(storedAppointment));
     }
   }, []);
+
+  const handleCancelAppointment = () => {
+    localStorage.removeItem('upcomingAppointment');
+    setAppointment(null);
+
+    const cancellationTransaction = {
+      date: new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD format
+      description: 'Pledge Cancelled',
+      amount: -10,
+      type: 'debit',
+    };
+    setTransactions(prev => [cancellationTransaction, ...prev]);
+
+    toast({
+      title: "Appointment Cancelled",
+      description: "Your appointment has been cancelled and 10 DamuTokens were deducted.",
+      variant: 'destructive',
+    });
+    setIsCancelAlertOpen(false);
+  };
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
@@ -93,8 +131,8 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                   {appointment ? (
-                    <div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
-                        <div className="text-xl font-bold text-primary">{appointment.facility.name}</div>
+                    <div className="relative p-4 rounded-lg bg-primary/5 border border-primary/10">
+                        <div className="text-xl font-bold text-primary pr-10">{appointment.facility.name}</div>
                         <div className="flex items-center text-sm text-muted-foreground mt-2">
                             <Clock className="h-4 w-4 mr-2 flex-shrink-0" />
                             <span>{new Date(appointment.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
@@ -103,7 +141,45 @@ export default function DashboardPage() {
                             <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
                             <span>{appointment.facility.address}</span>
                         </div>
-                       <Button variant="outline" size="sm" className="mt-4">Reschedule / Cancel</Button>
+                        <div className="absolute top-2 right-2">
+                           <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Toggle menu</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => router.push('/booking')}>
+                                    Reschedule
+                                  </DropdownMenuItem>
+                                  <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                      Cancel Appointment
+                                    </DropdownMenuItem>
+                                  </AlertDialogTrigger>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. Cancelling will deduct the 10 DamuTokens awarded for your pledge.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Go Back</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={handleCancelAppointment}
+                                    className="bg-destructive hover:bg-destructive/90"
+                                  >
+                                    Yes, Cancel It
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                       </div>
                     </div>
                   ) : (
                      <div className="text-center text-muted-foreground p-4 flex flex-col items-center justify-center">
