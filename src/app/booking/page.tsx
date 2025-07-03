@@ -5,30 +5,40 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { FacilityFinder } from '@/components/facility-finder';
+import { EligibilityQuestionnaire } from '@/components/eligibility-questionnaire';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import type { FindFacilitiesOutput } from '@/ai/flows/find-facilities';
 
 type Facility = FindFacilitiesOutput['facilities'][0];
+type EligibilityData = any;
 
 export default function BookingPage() {
   const [step, setStep] = useState(1);
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
+  const [eligibilityData, setEligibilityData] = useState<EligibilityData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   const handleFacilitySelect = (facility: Facility) => {
     setSelectedFacility(facility);
   };
   
-  const goToNextStep = () => {
-    if (step === 1 && selectedFacility) {
-      setStep(2);
-    }
+  const handleEligibilitySubmit = (data: EligibilityData) => {
+    // In a real app, we'd check answers here to determine eligibility.
+    // For this implementation, we'll assume they are eligible and proceed.
+    setEligibilityData(data);
+    setStep(3);
   }
 
-  const goToPrevStep = () => {
-    if (step === 2) {
-      setStep(1);
-    }
+  const goToNextStep = () => setStep(step + 1);
+  const goToPrevStep = () => setStep(step - 1);
+
+  const getStepDescription = () => {
+      switch(step) {
+          case 1: return 'Find a facility for your donation.';
+          case 2: return 'Please answer the medical eligibility questions.';
+          case 3: return 'Select a date and confirm your appointment details.';
+          default: return 'Book your donation appointment.';
+      }
   }
 
   return (
@@ -37,35 +47,46 @@ export default function BookingPage() {
         <div>
           <h2 className="text-3xl font-bold tracking-tight font-headline">Book an Appointment</h2>
           <p className="text-muted-foreground">
-            {step === 1 ? 'Find a facility and select a date for your donation.' : 'Confirm your appointment details.'}
+            {getStepDescription()}
           </p>
         </div>
-        {step === 2 && (
+        {step > 1 && (
              <Button variant="outline" onClick={goToPrevStep}>
-                <ArrowLeft className="mr-2" />
-                Back to Search
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
             </Button>
         )}
       </div>
 
       {step === 1 && (
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="font-headline">1. Find a Donation Facility</CardTitle>
-            <CardDescription>Use our AI-powered search to find the most convenient donation center near you.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FacilityFinder onFacilitySelect={handleFacilitySelect} />
-          </CardContent>
-        </Card>
+        <>
+            <Card className="shadow-lg">
+                <CardHeader>
+                    <CardTitle className="font-headline">1. Find a Donation Facility</CardTitle>
+                    <CardDescription>Use our AI-powered search to find the most convenient donation center near you.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <FacilityFinder onFacilitySelect={handleFacilitySelect} />
+                </CardContent>
+            </Card>
+            <div className="flex justify-end">
+                <Button size="lg" onClick={goToNextStep} disabled={!selectedFacility}>
+                    Answer Eligibility Questions <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            </div>
+        </>
       )}
 
-      {step === 2 && selectedFacility && (
+      {step === 2 && (
+        <EligibilityQuestionnaire onSubmit={handleEligibilitySubmit} />
+      )}
+
+      {step === 3 && selectedFacility && (
         <div className="grid gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-6">
                 <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle className="font-headline">2. Select a Date</CardTitle>
+                        <CardTitle className="font-headline">3. Select a Date</CardTitle>
                         <CardDescription>You are booking at: <span className="font-semibold text-primary">{selectedFacility.name}</span></CardDescription>
                     </CardHeader>
                     <CardContent className="flex justify-center">
@@ -97,14 +118,6 @@ export default function BookingPage() {
                     </CardContent>
                 </Card>
             </div>
-        </div>
-      )}
-
-      {step === 1 && (
-        <div className="flex justify-end">
-            <Button size="lg" onClick={goToNextStep} disabled={!selectedFacility}>
-                Select Date <ArrowRight className="ml-2" />
-            </Button>
         </div>
       )}
     </div>
