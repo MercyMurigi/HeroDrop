@@ -58,6 +58,127 @@ type Transaction = {
 
 type Facility = FindFacilitiesOutput['facilities'][0];
 
+type RedemptionDetails = {
+  code: string;
+  suggestedTime: string | null;
+  reasoning: string | null;
+};
+
+// This new component encapsulates the logic for the confirmation step,
+// including the async AI call. This makes the flow much more robust.
+function ConfirmationStep({
+  item,
+  location,
+  details,
+  onDetailsUpdate,
+}: {
+  item: RedeemableItem;
+  location: Facility | Vendor;
+  details: RedemptionDetails;
+  onDetailsUpdate: (details: RedemptionDetails) => void;
+}) {
+  const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
+
+  useEffect(() => {
+    // Only fetch if it's a service and we haven't fetched yet (suggestedTime is null)
+    if (
+      item.category === 'service' &&
+      'availability' in location &&
+      details.suggestedTime === null
+    ) {
+      const fetchSuggestion = async () => {
+        setIsSuggestionLoading(true);
+        try {
+          const result = await suggestRedemptionTime({
+            facilityName: location.name,
+            serviceName: item.title,
+          });
+          onDetailsUpdate({
+            ...details,
+            suggestedTime: result.suggestedTime,
+            reasoning: result.reasoning,
+          });
+        } catch (error) {
+          console.error('AI suggestion failed, using default.', error);
+          onDetailsUpdate({
+            ...details,
+            suggestedTime: 'Anytime during opening hours',
+            reasoning:
+              "We couldn't get a specific time suggestion. Please check with the facility for their peak hours.",
+          });
+        } finally {
+          setIsSuggestionLoading(false);
+        }
+      };
+      fetchSuggestion();
+    }
+  }, [item, location, details, onDetailsUpdate]);
+
+  const suggestedTime = isSuggestionLoading ? (
+    <Skeleton className="h-5 w-3/4" />
+  ) : (
+    details.suggestedTime || 'Anytime during opening hours'
+  );
+  const reasoning = isSuggestionLoading ? (
+    <Skeleton className="h-8 w-full" />
+  ) : (
+    details.reasoning ||
+    'Please check the store/facility for specific operating hours before visiting.'
+  );
+
+  return (
+    <div className="py-4 space-y-4">
+      <div className="bg-primary/5 border-2 border-dashed border-primary/20 rounded-lg p-6 text-center">
+        <p className="text-sm font-medium text-muted-foreground">
+          Your Redemption Code
+        </p>
+        <div className="flex items-center justify-center gap-3 mt-2">
+          <Ticket className="h-8 w-8 text-primary" />
+          <p className="text-4xl font-bold tracking-widest text-primary">
+            {details.code}
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-lg border p-4 flex items-center gap-4">
+        <div className="bg-primary/10 p-3 rounded-lg">
+          <Tag className="h-6 w-6 text-primary" />
+        </div>
+        <div>
+          <p className="font-semibold text-muted-foreground">You Will Receive</p>
+          <p className="text-lg font-bold">{item.redemptionValue}</p>
+          <p className="text-sm text-muted-foreground">{item.title}</p>
+        </div>
+      </div>
+
+      <div className="rounded-lg border p-4 space-y-1">
+        <p className="text-sm font-medium text-muted-foreground">
+          Redemption Location
+        </p>
+        <p className="font-semibold">{location.name}</p>
+        <div className="flex items-center text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0" />
+          <span>{location.address}</span>
+        </div>
+      </div>
+
+      <div className="rounded-lg border p-4">
+        <div className="flex items-center gap-3">
+          <Clock className="h-6 w-6 text-primary" />
+          <div>
+            <p className="font-semibold text-primary">Suggested Visit Time</p>
+            <div className="text-lg font-bold">{suggestedTime}</div>
+          </div>
+        </div>
+        <div className="flex items-start gap-3 mt-2 text-sm text-muted-foreground">
+          <Info className="h-4 w-4 mt-1 flex-shrink-0" />
+          <div>{reasoning}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function RedeemPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -68,7 +189,7 @@ export default function RedeemPage() {
   const [dialogStep, setDialogStep] = useState<'selectLocation' | 'confirmRedemption'>('selectLocation');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [redemptionDetails, setRedemptionDetails] = useState<{ code: string; suggestedTime: string; reasoning: string } | null>(null);
+  const [redemptionDetails, setRedemptionDetails] = useState<RedemptionDetails | null>(null);
 
   useEffect(() => {
     const storedTransactions = localStorage.getItem('transactions');
@@ -98,53 +219,33 @@ export default function RedeemPage() {
     setIsDialogOpen(true);
   };
 
-  const proceedToConfirmation = async () => {
+  const proceedToConfirmation = () => {
     if (!selectedItem || !selectedLocation) {
-        toast({
-            variant: "destructive",
-            title: "Location Not Selected",
-            description: "Please select a facility or store to continue.",
-        });
-        return;
+      toast({
+        variant: 'destructive',
+        title: 'Location Not Selected',
+        description: 'Please select a facility or store to continue.',
+      });
+      return;
     }
 
     setIsGenerating(true);
+    // This is now synchronous. It reliably moves to the next step.
+    const code = `${selectedItem.title
+      .substring(0, 4)
+      .toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
-    try {
-        const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`;
-        let suggestedTime = "Anytime during opening hours";
-        let reasoning = "Please check the store/facility for specific operating hours before visiting.";
-
-        if (selectedItem.category === 'service' && 'availability' in selectedLocation) {
-            try {
-                // This AI call is optional; if it fails, we use the default time.
-                const result = await suggestRedemptionTime({
-                    facilityName: selectedLocation.name,
-                    serviceName: selectedItem.title,
-                });
-                if (result?.suggestedTime) {
-                    suggestedTime = result.suggestedTime;
-                    reasoning = result.reasoning;
-                }
-            } catch (aiError) {
-                console.error("AI suggestion failed, but proceeding with default time:", aiError);
-            }
-        }
-        
-        setRedemptionDetails({ code, suggestedTime, reasoning });
-        setDialogStep('confirmRedemption');
-
-    } catch (error) {
-        console.error("A critical error occurred during voucher generation:", error);
-        toast({
-            variant: 'destructive',
-            title: "Voucher Generation Failed",
-            description: "An unexpected error occurred. Please try again.",
-        });
-    } finally {
-        setIsGenerating(false);
-    }
+    // Set initial details. The AI suggestion will be fetched in a useEffect
+    // inside the ConfirmationStep component.
+    setRedemptionDetails({
+      code,
+      suggestedTime: null, // Null indicates the AI suggestion hasn't been loaded yet.
+      reasoning: null,
+    });
+    setDialogStep('confirmRedemption');
+    setIsGenerating(false);
   };
+
 
   const handleConfirmRedemption = async () => {
     if (!selectedItem || !selectedLocation || !redemptionDetails) return;
@@ -158,7 +259,7 @@ export default function RedeemPage() {
         tokenBalance: totalBalance - selectedItem.cost,
         serviceRedeemed: selectedItem.title,
         redemptionCode: redemptionDetails.code,
-        suggestedTime: redemptionDetails.suggestedTime,
+        suggestedTime: redemptionDetails.suggestedTime || "N/A",
       });
 
       const newTransaction: Transaction = {
@@ -232,52 +333,15 @@ export default function RedeemPage() {
               <DialogHeader>
                 <DialogTitle className="font-headline text-2xl">Confirm Redemption</DialogTitle>
                 <DialogDescription>
-                  Step 2: Here is your code and our AI's suggested time to visit.
+                  Step 2: Here is your code. Show this at the facility/store to redeem.
                 </DialogDescription>
               </DialogHeader>
-              <div className="py-4 space-y-4">
-                <div className="bg-primary/5 border-2 border-dashed border-primary/20 rounded-lg p-6 text-center">
-                    <p className="text-sm font-medium text-muted-foreground">Your Redemption Code</p>
-                    <div className="flex items-center justify-center gap-3 mt-2">
-                        <Ticket className="h-8 w-8 text-primary"/>
-                        <p className="text-4xl font-bold tracking-widest text-primary">{redemptionDetails.code}</p>
-                    </div>
-                </div>
-
-                <div className="rounded-lg border p-4 flex items-center gap-4">
-                    <div className="bg-primary/10 p-3 rounded-lg">
-                        <Tag className="h-6 w-6 text-primary"/>
-                    </div>
-                    <div>
-                        <p className="font-semibold text-muted-foreground">You Will Receive</p>
-                        <p className="text-lg font-bold">{selectedItem.redemptionValue}</p>
-                        <p className="text-sm text-muted-foreground">{selectedItem.title}</p>
-                    </div>
-                </div>
-
-                <div className="rounded-lg border p-4 space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">Redemption Location</p>
-                    <p className="font-semibold">{selectedLocation.name}</p>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0" />
-                        <span>{selectedLocation.address}</span>
-                    </div>
-                </div>
-
-                <div className="rounded-lg border p-4">
-                    <div className="flex items-center gap-3">
-                        <Clock className="h-6 w-6 text-primary"/>
-                        <div>
-                            <p className="font-semibold text-primary">Suggested Visit Time</p>
-                            <p className="text-lg font-bold">{redemptionDetails.suggestedTime}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-start gap-3 mt-2 text-sm text-muted-foreground">
-                        <Info className="h-4 w-4 mt-1 flex-shrink-0" />
-                        <p>{redemptionDetails.reasoning}</p>
-                    </div>
-                </div>
-              </div>
+              <ConfirmationStep
+                item={selectedItem}
+                location={selectedLocation}
+                details={redemptionDetails}
+                onDetailsUpdate={setRedemptionDetails}
+              />
               <DialogFooter>
                 <Button type="button" variant="secondary" onClick={() => setDialogStep('selectLocation')}>Back</Button>
                 <Button onClick={handleConfirmRedemption} disabled={isConfirming}>
@@ -413,5 +477,3 @@ export default function RedeemPage() {
     </>
   );
 }
-
-    
