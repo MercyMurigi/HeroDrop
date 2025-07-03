@@ -29,11 +29,10 @@ export default function AuthPage() {
     <div className="relative min-h-screen w-full font-body">
       {/* Background Image */}
       <Image 
-          src="https://placehold.co/1920x1080.png"
-          alt="A smiling blood donor giving a thumbs up"
+          src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=1920"
+          alt="A healthcare professional attending to a blood donor"
           fill
           className="object-cover"
-          data-ai-hint="blood donation person"
           priority
       />
       <div className="absolute inset-0 bg-black/60" />
