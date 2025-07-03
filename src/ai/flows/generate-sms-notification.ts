@@ -37,6 +37,7 @@ Service Redeemed: {{{serviceRedeemed}}}
 Redemption Code: {{{redemptionCode}}}
 Appointment Time: {{{appointmentTime}}}
 Hospital Name: {{{hospitalName}}}
+Suggested Time: {{{suggestedTime}}}
 
 Include the token balance in the SMS message only for 'rewards' and 'redemption' notifications.
 Omit it for 'reminder' and 'confirmation' notifications.
@@ -44,7 +45,7 @@ Omit it for 'reminder' and 'confirmation' notifications.
 Here are example SMS notifications:
 
 Rewards: '👏🏽 Congrats, {{{userName}}}! You’ve earned 100 DamuTokens. Total balance: {{{tokenBalance}}} DT. Redeem now at damuhero.co.ke/redeem'
-Redemption: '🎉 {{{userName}}}, you've redeemed {{{serviceRedeemed}}}! Your redemption code is {{{redemptionCode}}}. Total balance: {{{tokenBalance}}} DT.'
+Redemption: '🎉 {{{userName}}}, you've redeemed {{{serviceRedeemed}}}. Code: {{{redemptionCode}}}. Best time to visit: {{{suggestedTime}}}. Balance: {{{tokenBalance}}} DT.'
 Reminder: '🔔 Hi {{{userName}}}, your appointment at {{{hospitalName}}} is scheduled for {{{appointmentTime}}}.'
 Confirmation: '✅ Hi {{{userName}}}, your appointment at {{{hospitalName}}} on {{{appointmentTime}}} has been confirmed.'
 

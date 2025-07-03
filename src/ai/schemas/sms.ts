@@ -13,6 +13,7 @@ export const GenerateSmsNotificationInputSchema = z.object({
   redemptionCode: z.string().optional().describe('The redemption code, if applicable.'),
   appointmentTime: z.string().optional().describe('The appointment time, if applicable.'),
   hospitalName: z.string().optional().describe('The name of the hospital for the appointment, if applicable.'),
+  suggestedTime: z.string().optional().describe('A suggested time for the user to visit for their redemption.'),
 });
 export type GenerateSmsNotificationInput = z.infer<typeof GenerateSmsNotificationInputSchema>;
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Coins, HeartPulse, ShieldCheck, Users, Stethoscope, ClipboardCheck, Loader2 } from 'lucide-react';
+import { Coins, HeartPulse, ShieldCheck, Users, Stethoscope, ClipboardCheck, Loader2, ArrowRight, Ticket, Clock, Info } from 'lucide-react';
 import Image from 'next/image';
 import {
   Dialog,
@@ -17,6 +17,7 @@ import {
 import { FacilityFinder } from '@/components/facility-finder';
 import { useToast } from '@/hooks/use-toast';
 import { generateSmsNotification } from '@/ai/flows/generate-sms-notification';
+import { suggestRedemptionTime } from '@/ai/flows/suggest-redemption-time';
 import type { FindFacilitiesOutput } from '@/ai/schemas/facilities';
 
 const services = [
@@ -42,7 +43,10 @@ export default function RedeemPage() {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogStep, setDialogStep] = useState<'selectFacility' | 'confirmRedemption'>('selectFacility');
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [redemptionDetails, setRedemptionDetails] = useState<{ code: string; suggestedTime: string; reasoning: string } | null>(null);
 
   useEffect(() => {
     const storedTransactions = localStorage.getItem('transactions');
@@ -65,19 +69,41 @@ export default function RedeemPage() {
       return;
     }
     setSelectedService(service);
-    setSelectedFacility(null); // Reset facility on new dialog open
+    setSelectedFacility(null);
+    setDialogStep('selectFacility');
+    setRedemptionDetails(null);
     setIsDialogOpen(true);
   };
 
-  const handleConfirmRedemption = async () => {
+  const handleFacilitySelectedAndSuggestTime = async () => {
     if (!selectedService || !selectedFacility) return;
-
-    setIsConfirming(true);
-
-    const redemptionCode = `${selectedService.title.substring(0, 4).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-
+    setIsGenerating(true);
     try {
-      // In a real app, we'd get user details from a session
+      const result = await suggestRedemptionTime({
+        facilityName: selectedFacility.name,
+        serviceName: selectedService.title,
+      });
+      
+      const code = `${selectedService.title.substring(0, 4).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      setRedemptionDetails({ code, ...result });
+      setDialogStep('confirmRedemption');
+    } catch (error) {
+      console.error("Failed to get suggestion:", error);
+      toast({
+        variant: "destructive",
+        title: "Suggestion Failed",
+        description: "Could not get a time suggestion from our AI. Please try again.",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleConfirmRedemption = async () => {
+    if (!selectedService || !selectedFacility || !redemptionDetails) return;
+    setIsConfirming(true);
+    try {
       const userName = 'Jane Donor';
       
       await generateSmsNotification({
@@ -85,7 +111,8 @@ export default function RedeemPage() {
         userName: userName,
         tokenBalance: totalBalance - selectedService.cost,
         serviceRedeemed: selectedService.title,
-        redemptionCode: redemptionCode,
+        redemptionCode: redemptionDetails.code,
+        suggestedTime: redemptionDetails.suggestedTime,
       });
 
       const newTransaction: Transaction = {
@@ -94,17 +121,15 @@ export default function RedeemPage() {
         amount: -selectedService.cost,
         type: 'debit',
       };
-
       const updatedTransactions = [newTransaction, ...transactions];
       setTransactions(updatedTransactions);
       localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
 
       toast({
         title: 'Redemption Successful!',
-        description: `Your code is ${redemptionCode}. It has also been sent via SMS.`,
+        description: `Your code is ${redemptionDetails.code}. Details sent via SMS.`,
         duration: 9000,
       });
-
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Redemption failed:', error);
@@ -117,6 +142,89 @@ export default function RedeemPage() {
       setIsConfirming(false);
     }
   };
+  
+  const renderDialogContent = () => {
+    if (!selectedService) return null;
+
+    if (dialogStep === 'selectFacility') {
+      return (
+        <>
+          <DialogHeader>
+            <DialogTitle className="font-headline text-2xl">Redeem: {selectedService.title}</DialogTitle>
+            <DialogDescription>
+              Step 1: Select a facility to redeem this service at.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+             <FacilityFinder onFacilitySelect={setSelectedFacility} />
+          </div>
+          <DialogFooter>
+             <DialogClose asChild>
+                <Button type="button" variant="secondary">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleFacilitySelectedAndSuggestTime} disabled={!selectedFacility || isGenerating}>
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Getting Suggestion...
+                </>
+              ) : (
+                <>Next <ArrowRight className="ml-2 h-4 w-4" /></>
+              )}
+            </Button>
+          </DialogFooter>
+        </>
+      );
+    }
+
+    if (dialogStep === 'confirmRedemption' && redemptionDetails) {
+        return (
+             <>
+              <DialogHeader>
+                <DialogTitle className="font-headline text-2xl">Confirm Redemption</DialogTitle>
+                <DialogDescription>
+                  Step 2: Here is your code and our AI's suggested time to visit.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 space-y-6">
+                <div className="bg-primary/5 border-2 border-dashed border-primary/20 rounded-lg p-6 text-center">
+                    <p className="text-sm font-medium text-muted-foreground">Your Redemption Code</p>
+                    <div className="flex items-center justify-center gap-3 mt-2">
+                        <Ticket className="h-8 w-8 text-primary"/>
+                        <p className="text-4xl font-bold tracking-widest text-primary">{redemptionDetails.code}</p>
+                    </div>
+                </div>
+                <div className="rounded-lg border p-4">
+                    <div className="flex items-center gap-3">
+                        <Clock className="h-6 w-6 text-primary"/>
+                        <div>
+                            <p className="font-semibold text-primary">Suggested Visit Time</p>
+                            <p className="text-lg font-bold">{redemptionDetails.suggestedTime}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3 mt-2 text-sm text-muted-foreground">
+                        <Info className="h-4 w-4 mt-1 flex-shrink-0" />
+                        <p>{redemptionDetails.reasoning}</p>
+                    </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="secondary" onClick={() => setDialogStep('selectFacility')}>Back</Button>
+                <Button onClick={handleConfirmRedemption} disabled={isConfirming}>
+                  {isConfirming ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...
+                    </>
+                  ) : (
+                    `Confirm & Redeem for ${selectedService.cost} DT`
+                  )}
+                </Button>
+              </DialogFooter>
+            </>
+        )
+    }
+
+    return null;
+  }
 
   return (
     <>
@@ -165,36 +273,7 @@ export default function RedeemPage() {
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-2xl">
-          {selectedService && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="font-headline text-2xl">Redeem: {selectedService.title}</DialogTitle>
-                <DialogDescription>
-                  Select a facility to redeem this service at. A code will be generated for you to present at the hospital.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4">
-                 <FacilityFinder onFacilitySelect={setSelectedFacility} />
-              </div>
-              <DialogFooter>
-                 <DialogClose asChild>
-                    <Button type="button" variant="secondary">
-                        Cancel
-                    </Button>
-                </DialogClose>
-                <Button onClick={handleConfirmRedemption} disabled={!selectedFacility || isConfirming}>
-                  {isConfirming ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Confirming...
-                    </>
-                  ) : (
-                    `Confirm for ${selectedService.cost} DT`
-                  )}
-                </Button>
-              </DialogFooter>
-            </>
-          )}
+          {renderDialogContent()}
         </DialogContent>
       </Dialog>
     </>
