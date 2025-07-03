@@ -45,7 +45,7 @@ const healthServices: RedeemableItem[] = [
 const marketplaceItems: RedeemableItem[] = [
   { title: 'Sanitary Pads', cost: 50, icon: Package, description: "A pack of high-quality sanitary pads from our partner brands.", image: "https://plus.unsplash.com/premium_photo-1664375262056-a8503d4d073c?q=80&w=388&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", hint: "sanitary product", category: 'product', redemptionValue: "1 Standard Pack" },
   { title: 'Wellness Kit', cost: 120, icon: Gift, description: "A curated wellness kit with essential vitamins and health products.", image: "https://images.unsplash.com/photo-1625154253125-5d89afab6c7c?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", hint: "wellness kit", category: 'product', redemptionValue: "1 Kit" },
-  { title: 'Over-the-Counter Meds', cost: 40, icon: Pill, description: "Redeem for common OTC medications like painkillers or allergy relief.", image: "https://placehold.co/600x400.png", hint: "medication pills", category: 'product', redemptionValue: "Voucher worth KSh 500" },
+  { title: 'Over-the-Counter Meds', cost: 40, icon: Pill, description: "Redeem for common OTC medications like painkillers or allergy relief.", image: "https://plus.unsplash.com/premium_photo-1732319199786-33a2eaed7b7c?q=80&w=725&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", hint: "medication pills", category: 'product', redemptionValue: "Voucher worth KSh 500" },
 ];
 
 type Transaction = {
