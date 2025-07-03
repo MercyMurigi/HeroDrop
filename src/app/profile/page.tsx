@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,8 +7,19 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Camera } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
+    const { toast } = useToast();
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        toast({
+            title: "Profile Updated",
+            description: "Your changes have been successfully saved.",
+        });
+    };
+
     return (
         <div className="flex-1 space-y-8 p-4 md:p-8">
             <div className="flex items-center justify-between space-y-2">
@@ -40,7 +53,7 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    <form className="grid md:grid-cols-2 gap-6">
+                    <form className="grid md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
                         <div className="space-y-2">
                             <Label htmlFor="fullName">Full Name</Label>
                             <Input id="fullName" defaultValue="Jane Donor" />
