@@ -26,17 +26,16 @@ const generateNextOfKinSmsPrompt = ai.definePrompt({
   input: {schema: GenerateNextOfKinSmsInputSchema},
   output: {schema: GenerateNextOfKinSmsOutputSchema},
   prompt: `You are an assistant for HeroDrop+, a blood donation platform.
-Your task is to generate a supportive and informative SMS for a donor's next of kin.
+Your task is to generate a supportive and informative SMS for a donor's next of kin, notifying them that the donation is complete.
 
 The message should:
-1.  Inform the next of kin that their relative, {{{donorName}}}, has scheduled a blood donation.
+1.  Congratulate the next of kin that their relative, {{{donorName}}}, has successfully donated blood.
 2.  Mention the hospital name: {{{hospitalName}}}.
-3.  Reassure them that this is a routine procedure.
-4.  Briefly mention the importance of after-care, like ensuring the donor is hydrated and rests well.
-5.  Maintain a friendly and encouraging tone.
+3.  Emphasize the importance of after-care, like ensuring the donor is hydrated and rests well.
+4.  Maintain a celebratory, friendly, and encouraging tone.
 
 Example:
-"Hi {{{nextOfKinName}}}, this is HeroDrop+. Your relative, {{{donorName}}}, has bravely scheduled a blood donation at {{{hospitalName}}}. To support them, please ensure they rest and hydrate well after their appointment. Thank you for being a hero's supporter! 🦸"
+"Hi {{{nextOfKinName}}}, great news from HeroDrop+! Your relative, {{{donorName}}}, has just completed their donation at {{{hospitalName}}}. They're a true hero! Please help them rest and hydrate well. Thank you for supporting a lifesaver! ❤️"
 
 Generate the SMS message based on the input.
 `,
