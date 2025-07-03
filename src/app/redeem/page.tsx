@@ -204,11 +204,15 @@ export default function RedeemPage() {
     if (!state.selectedItem || !state.selectedLocation || !state.redemptionDetails) return;
     dispatch({ type: 'FINISH_REDEMPTION' });
     try {
-      const userName = 'Jane Donor';
+      const user = {
+          name: 'Jane Donor', // Placeholder
+          phone: '+254712345678' // Placeholder
+      };
       
       await generateSmsNotification({
         notificationType: 'redemption',
-        userName: userName,
+        userName: user.name,
+        phone: user.phone,
         tokenBalance: totalBalance - state.selectedItem.cost,
         serviceRedeemed: state.selectedItem.title,
         redemptionCode: state.redemptionDetails.code,
@@ -275,7 +279,7 @@ export default function RedeemPage() {
               <DialogHeader>
                 <DialogTitle className="font-headline text-2xl">Confirm Redemption</DialogTitle>
                 <DialogDescription>
-                  Step 2: Here is your code. Show this at the facility/store to redeem.
+                  Step 2: Here is your code. Show this at the facility/store to redeem. An SMS has also been sent to your phone.
                 </DialogDescription>
               </DialogHeader>
                <div className="flex-grow py-4 space-y-4 overflow-y-auto -mr-6 pr-6">
@@ -321,7 +325,7 @@ export default function RedeemPage() {
               <DialogFooter className="flex-shrink-0 border-t pt-4">
                 <Button type="button" variant="secondary" onClick={() => dispatch({ type: 'OPEN_DIALOG', payload: selectedItem })}>Back</Button>
                 <Button onClick={handleConfirmRedemption} disabled={state.status === 'processing'}>
-                  {state.status === 'processing' ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</>) : (<><Send className="mr-2 h-4 w-4" /> Send Voucher & Complete</>)}
+                  {state.status === 'processing' ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Finalizing...</>) : (<><Send className="mr-2 h-4 w-4" /> Confirm & Close</>)}
                 </Button>
               </DialogFooter>
             </>

@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 const formSchema = z.object({
   notificationType: z.enum(['reminder', 'confirmation', 'rewards', 'redemption']),
   userName: z.string().min(2, "Username must be at least 2 characters."),
+  phone: z.string().min(10, "Please enter a valid phone number."),
   tokenBalance: z.coerce.number().positive("Token balance must be a positive number."),
   serviceRedeemed: z.string().optional(),
   redemptionCode: z.string().optional(),
@@ -36,6 +37,7 @@ export function SmsNotificationForm() {
     defaultValues: {
       notificationType: 'rewards',
       userName: 'Jane Donor',
+      phone: '+254712345678',
       tokenBalance: 130,
       serviceRedeemed: 'General checkup',
       redemptionCode: 'XYZ123',
@@ -52,12 +54,16 @@ export function SmsNotificationForm() {
     try {
       const result = await generateSmsNotification(values as GenerateSmsNotificationInput);
       setGeneratedSms(result.smsMessage);
+       toast({
+        title: "SMS Generated & Sent!",
+        description: `The notification has been sent to ${values.phone}.`,
+      });
     } catch (error) {
       console.error(error);
       toast({
         variant: "destructive",
         title: "Error Generating SMS",
-        description: "There was a problem generating the SMS. Please try again.",
+        description: "There was a problem generating or sending the SMS. Please try again.",
       })
     } finally {
       setIsLoading(false);
@@ -92,19 +98,34 @@ export function SmsNotificationForm() {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="userName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>User Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Jane Doe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-2 gap-4">
+             <FormField
+                control={form.control}
+                name="userName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>User Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Jane Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input type="tel" placeholder="+2547..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+          </div>
           
           <FormField
             control={form.control}
@@ -184,7 +205,7 @@ export function SmsNotificationForm() {
 
           <Button type="submit" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Generate SMS
+            Generate & Send SMS
           </Button>
         </form>
       </Form>
@@ -194,7 +215,7 @@ export function SmsNotificationForm() {
           {isLoading ? (
              <div className="flex flex-col items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p>Generating message...</p>
+                <p>Generating & Sending...</p>
              </div>
           ) : generatedSms ? (
             <div className="flex flex-col items-center gap-4">

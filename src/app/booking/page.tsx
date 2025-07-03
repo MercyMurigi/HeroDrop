@@ -43,16 +43,19 @@ export default function BookingPage() {
         // In a real app, we'd get donor and next of kin details from user session/state
         const donorDetails = {
             name: 'Jane Donor', // Placeholder
+            phone: '+254712345678', // Placeholder - use international format
             tokenBalance: 130, // Placeholder
         };
         const nextOfKinDetails = {
             name: 'John Donor', // Placeholder
+            phone: '+254787654321', // Placeholder
         };
 
         // Generate and "send" SMS to donor
         const donorSmsPromise = generateSmsNotification({
             notificationType: 'confirmation',
             userName: donorDetails.name,
+            phone: donorDetails.phone,
             tokenBalance: donorDetails.tokenBalance,
             appointmentTime: `${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`,
             hospitalName: selectedFacility.name,
@@ -62,14 +65,12 @@ export default function BookingPage() {
         const nextOfKinSmsPromise = generateNextOfKinSms({
             donorName: donorDetails.name,
             nextOfKinName: nextOfKinDetails.name,
+            nextOfKinPhone: nextOfKinDetails.phone,
             hospitalName: selectedFacility.name,
         });
 
         // Await both promises
-        const [donorSmsResult, nextOfKinSmsResult] = await Promise.all([donorSmsPromise, nextOfKinSmsPromise]);
-
-        console.log("Donor SMS:", donorSmsResult.smsMessage);
-        console.log("Next of Kin SMS:", nextOfKinSmsResult.smsMessage);
+        await Promise.all([donorSmsPromise, nextOfKinSmsPromise]);
         
         const newAppointment = {
             id: Date.now(),
@@ -99,7 +100,7 @@ export default function BookingPage() {
 
         toast({
             title: "Appointment Confirmed!",
-            description: `You've earned 10 DamuTokens! Your booking at ${selectedFacility.name} is confirmed.`,
+            description: `You've earned 10 DamuTokens! Your booking at ${selectedFacility.name} is confirmed via SMS.`,
         });
         router.push('/dashboard');
 

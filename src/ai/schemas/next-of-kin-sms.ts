@@ -6,6 +6,7 @@ import {z} from 'zod';
 export const GenerateNextOfKinSmsInputSchema = z.object({
   donorName: z.string().describe('The name of the donor.'),
   nextOfKinName: z.string().describe('The name of the next of kin.'),
+  nextOfKinPhone: z.string().describe("The phone number of the next of kin to receive the SMS."),
   hospitalName: z.string().describe('The name of the hospital for the appointment.'),
 });
 export type GenerateNextOfKinSmsInput = z.infer<typeof GenerateNextOfKinSmsInputSchema>;

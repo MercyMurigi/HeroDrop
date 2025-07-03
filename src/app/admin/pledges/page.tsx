@@ -12,14 +12,16 @@ import { generateSmsNotification } from '@/ai/flows/generate-sms-notification';
 import { generateNextOfKinSms } from '@/ai/flows/generate-next-of-kin-sms';
 
 const initialPledges = [
-  { donorName: "Mercy Wairimu", nextOfKinName: "Samuel Wairimu", phone: "+254712345678", bloodType: "O+", pledgeDate: "2025-07-06", facility: "Mama Lucy Hospital", status: "Scheduled", currentTokens: 10 },
-  { donorName: "John Omondi", nextOfKinName: "Mary Omondi", phone: "+254723456789", bloodType: "A-", pledgeDate: "2025-07-05", facility: "Kenyatta National Hospital", status: "Completed", currentTokens: 110 },
-  { donorName: "Fatuma Ali", nextOfKinName: "Hassan Ali", phone: "+254734567890", bloodType: "B+", pledgeDate: "2025-07-04", facility: "Aga Khan Hospital", status: "Scheduled", currentTokens: 10 },
-  { donorName: "David Kimani", nextOfKinName: "Susan Kimani", phone: "+254745678901", bloodType: "AB+", pledgeDate: "2025-07-03", facility: "Nairobi Hospital", status: "Cancelled", currentTokens: 0 },
-  { donorName: "Grace Nabwire", nextOfKinName: "Peter Nabwire", phone: "+254756789012", bloodType: "O-", pledgeDate: "2025-07-02", facility: "M.P. Shah Hospital", status: "Completed", currentTokens: 140 },
+  { donorName: "Mercy Wairimu", nextOfKinName: "Samuel Wairimu", phone: "+254712345678", nextOfKinPhone: "+254711111111", bloodType: "O+", pledgeDate: "2025-07-06", facility: "Mama Lucy Hospital", status: "Scheduled", currentTokens: 10 },
+  { donorName: "John Omondi", nextOfKinName: "Mary Omondi", phone: "+254723456789", nextOfKinPhone: "+254722222222", bloodType: "A-", pledgeDate: "2025-07-05", facility: "Kenyatta National Hospital", status: "Completed", currentTokens: 110 },
+  { donorName: "Fatuma Ali", nextOfKinName: "Hassan Ali", phone: "+254734567890", nextOfKinPhone: "+254733333333", bloodType: "B+", pledgeDate: "2025-07-04", facility: "Aga Khan Hospital", status: "Scheduled", currentTokens: 10 },
+  { donorName: "David Kimani", nextOfKinName: "Susan Kimani", phone: "+254745678901", nextOfKinPhone: "+254744444444", bloodType: "AB+", pledgeDate: "2025-07-03", facility: "Nairobi Hospital", status: "Cancelled", currentTokens: 0 },
+  { donorName: "Grace Nabwire", nextOfKinName: "Peter Nabwire", phone: "+254756789012", nextOfKinPhone: "+254755555555", bloodType: "O-", pledgeDate: "2025-07-02", facility: "M.P. Shah Hospital", status: "Completed", currentTokens: 140 },
 ];
 
 type PledgeStatus = "Scheduled" | "Completed" | "Cancelled";
+type Pledge = (typeof initialPledges)[0];
+
 
 export default function PledgesPage() {
   const [pledges, setPledges] = useState(initialPledges);
@@ -57,12 +59,14 @@ export default function PledgesPage() {
         const donorSmsPromise = generateSmsNotification({
             notificationType: 'rewards',
             userName: pledge.donorName,
+            phone: pledge.phone,
             tokenBalance: pledge.currentTokens + 100, // Simulate earning 100 tokens
         });
 
         const nextOfKinSmsPromise = generateNextOfKinSms({
             donorName: pledge.donorName,
             nextOfKinName: pledge.nextOfKinName,
+            nextOfKinPhone: pledge.nextOfKinPhone,
             hospitalName: pledge.facility,
         });
 
@@ -70,7 +74,7 @@ export default function PledgesPage() {
         
         toast({
             title: "Donation Confirmed!",
-            description: "The pledge status is updated, 100 DamuTokens awarded, and notifications have been sent.",
+            description: "Pledge status updated, 100 DamuTokens awarded, and SMS notifications sent.",
         });
 
       } catch (error) {
@@ -125,7 +129,7 @@ export default function PledgesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pledges.map((pledge) => (
+              {pledges.map((pledge: Pledge) => (
                 <TableRow key={pledge.phone}>
                   <TableCell className="font-medium">{pledge.donorName}</TableCell>
                   <TableCell>{pledge.phone}</TableCell>

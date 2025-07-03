@@ -3,10 +3,11 @@
 /**
  * @fileOverview Generates a supportive SMS notification for a donor's next of kin.
  *
- * - generateNextOfKinSms - A function that generates the SMS.
+ * - generateNextOfKinSms - A function that generates and sends the SMS.
  */
 
 import {ai} from '@/ai/genkit';
+import { sendSms } from '@/services/sms-service';
 import {
   GenerateNextOfKinSmsInput,
   GenerateNextOfKinSmsInputSchema,
@@ -49,6 +50,15 @@ const generateNextOfKinSmsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await generateNextOfKinSmsPrompt(input);
+    
+    if (output?.smsMessage) {
+        try {
+            await sendSms({ to: input.nextOfKinPhone, message: output.smsMessage });
+        } catch (error) {
+            console.error('Failed to send Next of Kin SMS in flow:', error);
+        }
+    }
+
     return output!;
   }
 );

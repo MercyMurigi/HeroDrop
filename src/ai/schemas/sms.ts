@@ -8,6 +8,7 @@ export const GenerateSmsNotificationInputSchema = z.object({
     .enum(['reminder', 'confirmation', 'rewards', 'redemption'])
     .describe('The type of SMS notification to send.'),
   userName: z.string().describe('The name of the user receiving the notification.'),
+  phone: z.string().describe('The phone number of the user to receive the SMS.'),
   tokenBalance: z.number().describe('The current DamuToken balance of the user.'),
   serviceRedeemed: z.string().optional().describe('The service redeemed, if applicable.'),
   redemptionCode: z.string().optional().describe('The redemption code, if applicable.'),

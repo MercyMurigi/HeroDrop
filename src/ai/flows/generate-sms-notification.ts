@@ -3,10 +3,11 @@
 /**
  * @fileOverview Generates SMS notifications with dynamic content, including DamuToken balance based on notification type.
  *
- * - generateSmsNotification - A function that generates SMS notifications.
+ * - generateSmsNotification - A function that generates and sends SMS notifications.
  */
 
 import {ai} from '@/ai/genkit';
+import { sendSms } from '@/services/sms-service';
 import {
   GenerateSmsNotificationInput,
   GenerateSmsNotificationInputSchema,
@@ -62,6 +63,17 @@ const generateSmsNotificationFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await generateSmsNotificationPrompt(input);
+    
+    if (output?.smsMessage) {
+        try {
+            await sendSms({ to: input.phone, message: output.smsMessage });
+        } catch (error) {
+            console.error('Failed to send SMS in flow:', error);
+            // Optionally, you can decide if the flow should fail here or just log the error.
+            // For now, we'll let it continue and just return the generated message.
+        }
+    }
+    
     return output!;
   }
 );
