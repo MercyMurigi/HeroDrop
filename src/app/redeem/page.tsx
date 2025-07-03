@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Coins, HeartPulse, ShieldCheck, Stethoscope, ClipboardCheck, Loader2, ArrowRight, Ticket, Clock, Info, Package, Gift, Pill, Smile, ShoppingBag, MapPin } from 'lucide-react';
+import { Coins, HeartPulse, ShieldCheck, Stethoscope, ClipboardCheck, Loader2, ArrowRight, Ticket, Clock, Info, Package, Gift, Pill, Smile, ShoppingBag, MapPin, Tag } from 'lucide-react';
 import Image from 'next/image';
 import {
   Dialog,
@@ -31,20 +31,21 @@ type RedeemableItem = {
   image: string;
   hint: string;
   category: 'service' | 'product';
+  redemptionValue: string;
 };
 
 const healthServices: RedeemableItem[] = [
-  { title: 'General Checkup', cost: 60, icon: Stethoscope, description: "A comprehensive health checkup with a general practitioner.", image: "https://placehold.co/600x400.png", hint: "doctor checkup", category: 'service' },
-  { title: 'Free Lab Test', cost: 100, icon: HeartPulse, description: "Includes tests for malaria, hemoglobin levels, and more.", image: "https://placehold.co/600x400.png", hint: "lab test", category: 'service' },
-  { title: 'Mental Health Session', cost: 80, icon: Smile, description: "A private session with a certified mental health professional.", image: "https://placehold.co/600x400.png", hint: "counseling session", category: 'service' },
-  { title: 'Queue Priority (Fast-Pass)', cost: 30, icon: ShieldCheck, description: "Skip the line and get priority access at partner facilities.", image: "https://placehold.co/600x400.png", hint: "hospital queue", category: 'service' },
-  { title: "Women's Health Screening", cost: 150, icon: ClipboardCheck, description: "Includes essential screenings like pap smear and breast exam.", image: "https://placehold.co/600x400.png", hint: "health screening", category: 'service' },
+  { title: 'General Checkup', cost: 60, icon: Stethoscope, description: "A comprehensive health checkup with a general practitioner.", image: "https://placehold.co/600x400.png", hint: "doctor checkup", category: 'service', redemptionValue: "1 Session" },
+  { title: 'Free Lab Test', cost: 100, icon: HeartPulse, description: "Includes tests for malaria, hemoglobin levels, and more.", image: "https://placehold.co/600x400.png", hint: "lab test", category: 'service', redemptionValue: "1 Test Panel" },
+  { title: 'Mental Health Session', cost: 80, icon: Smile, description: "A private session with a certified mental health professional.", image: "https://placehold.co/600x400.png", hint: "counseling session", category: 'service', redemptionValue: "1 Session" },
+  { title: 'Queue Priority (Fast-Pass)', cost: 30, icon: ShieldCheck, description: "Skip the line and get priority access at partner facilities.", image: "https://placehold.co/600x400.png", hint: "hospital queue", category: 'service', redemptionValue: "1 Use Pass" },
+  { title: "Women's Health Screening", cost: 150, icon: ClipboardCheck, description: "Includes essential screenings like pap smear and breast exam.", image: "https://placehold.co/600x400.png", hint: "health screening", category: 'service', redemptionValue: "1 Screening" },
 ];
 
 const marketplaceItems: RedeemableItem[] = [
-  { title: 'Sanitary Pads', cost: 50, icon: Package, description: "A pack of high-quality sanitary pads from our partner brands.", image: "https://placehold.co/600x400.png", hint: "sanitary pads", category: 'product' },
-  { title: 'Wellness Kit', cost: 120, icon: Gift, description: "A curated wellness kit with essential vitamins and health products.", image: "https://placehold.co/600x400.png", hint: "wellness kit", category: 'product' },
-  { title: 'Over-the-Counter Meds', cost: 40, icon: Pill, description: "Redeem for common OTC medications like painkillers or allergy relief.", image: "https://placehold.co/600x400.png", hint: "medication pills", category: 'product' },
+  { title: 'Sanitary Pads', cost: 50, icon: Package, description: "A pack of high-quality sanitary pads from our partner brands.", image: "https://placehold.co/600x400.png", hint: "sanitary pads", category: 'product', redemptionValue: "1 Standard Pack" },
+  { title: 'Wellness Kit', cost: 120, icon: Gift, description: "A curated wellness kit with essential vitamins and health products.", image: "https://placehold.co/600x400.png", hint: "wellness kit", category: 'product', redemptionValue: "1 Kit" },
+  { title: 'Over-the-Counter Meds', cost: 40, icon: Pill, description: "Redeem for common OTC medications like painkillers or allergy relief.", image: "https://placehold.co/600x400.png", hint: "medication pills", category: 'product', redemptionValue: "Voucher worth KSh 500" },
 ];
 
 type Transaction = {
@@ -218,12 +219,23 @@ export default function RedeemPage() {
                   Step 2: Here is your code and our AI's suggested time to visit.
                 </DialogDescription>
               </DialogHeader>
-              <div className="py-4 space-y-6">
+              <div className="py-4 space-y-4">
                 <div className="bg-primary/5 border-2 border-dashed border-primary/20 rounded-lg p-6 text-center">
                     <p className="text-sm font-medium text-muted-foreground">Your Redemption Code</p>
                     <div className="flex items-center justify-center gap-3 mt-2">
                         <Ticket className="h-8 w-8 text-primary"/>
                         <p className="text-4xl font-bold tracking-widest text-primary">{redemptionDetails.code}</p>
+                    </div>
+                </div>
+
+                <div className="rounded-lg border p-4 flex items-center gap-4">
+                    <div className="bg-primary/10 p-3 rounded-lg">
+                        <Tag className="h-6 w-6 text-primary"/>
+                    </div>
+                    <div>
+                        <p className="font-semibold text-muted-foreground">You Will Receive</p>
+                        <p className="text-lg font-bold">{selectedItem.redemptionValue}</p>
+                        <p className="text-sm text-muted-foreground">{selectedItem.title}</p>
                     </div>
                 </div>
 
