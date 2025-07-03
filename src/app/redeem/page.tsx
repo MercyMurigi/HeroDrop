@@ -109,53 +109,42 @@ export default function RedeemPage() {
 
     setIsGenerating(true);
 
-    try {
-        const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`;
-        let suggestedTime = "";
-        let reasoning = "";
+    const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+    let suggestedTime = "Anytime during opening hours";
+    let reasoning = "Please check the store/facility for specific operating hours before visiting.";
 
-        if (selectedItem.category === 'service') {
-            if (!('availability' in selectedLocation)) {
-                throw new Error("A health service was selected, but the chosen location is not a valid facility.");
-            }
+    // Only attempt to get an AI suggestion for health services.
+    if (selectedItem.category === 'service' && 'availability' in selectedLocation) {
+        try {
             const result = await suggestRedemptionTime({
                 facilityName: selectedLocation.name,
                 serviceName: selectedItem.title,
             });
-
-            if (!result?.suggestedTime) {
-                throw new Error("The AI assistant could not suggest a time. Please try again.");
+            // Only update the time if the AI returns a valid suggestion.
+            if (result?.suggestedTime) {
+                suggestedTime = result.suggestedTime;
+                reasoning = result.reasoning;
+            } else {
+                console.warn("AI did not provide a suggested time. Using default.");
             }
-            suggestedTime = result.suggestedTime;
-            reasoning = result.reasoning;
-
-        } else if (selectedItem.category === 'product') {
-            if (!('type' in selectedLocation)) {
-                throw new Error("A product was selected, but the chosen location is not a valid partner store.");
-            }
-            suggestedTime = "Anytime during opening hours";
-            reasoning = "This is a product voucher. Please check the partner store for specific operating hours before visiting.";
-        } else {
-            throw new Error("Unknown redemption category.");
+        } catch (error) {
+            // If the AI call fails, we log the error, notify the user, and proceed with default values.
+            console.error("Failed to get suggested time from AI:", error);
+            toast({
+                title: "AI Suggestion Failed",
+                description: "Could not get a suggested visit time, but you can still proceed with your redemption.",
+            });
         }
-        
-        setRedemptionDetails({
-            code: code,
-            suggestedTime: suggestedTime,
-            reasoning: reasoning,
-        });
-        setDialogStep('confirmRedemption');
-
-    } catch (error: any) {
-        console.error("Failed to generate redemption details:", error);
-        toast({
-            variant: "destructive",
-            title: "Action Failed",
-            description: error.message || "Could not generate redemption details. Please try again.",
-        });
-    } finally {
-        setIsGenerating(false);
     }
+    
+    // This part is now guaranteed to run, ensuring the user always proceeds to the next step.
+    setRedemptionDetails({
+        code: code,
+        suggestedTime: suggestedTime,
+        reasoning: reasoning,
+    });
+    setDialogStep('confirmRedemption');
+    setIsGenerating(false);
   };
 
   const handleConfirmRedemption = async () => {
