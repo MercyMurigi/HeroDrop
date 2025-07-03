@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -97,25 +98,26 @@ export default function RedeemPage() {
     setIsDialogOpen(true);
   };
 
-  const proceedToConfirmation = () => {
+  const proceedToConfirmation = async () => {
     if (!selectedItem || !selectedLocation) {
         toast({
             variant: "destructive",
-            title: "Error",
-            description: "Please select an item and location first.",
+            title: "Location Not Selected",
+            description: "Please select a facility or store to continue.",
         });
         return;
     }
 
     setIsGenerating(true);
 
-    const generateDetails = async () => {
+    try {
         const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`;
         let suggestedTime = "Anytime during opening hours";
         let reasoning = "Please check the store/facility for specific operating hours before visiting.";
 
-        if (selectedItem.category === 'service' && selectedLocation && 'availability' in selectedLocation) {
+        if (selectedItem.category === 'service' && 'availability' in selectedLocation) {
             try {
+                // This AI call is optional; if it fails, we use the default time.
                 const result = await suggestRedemptionTime({
                     facilityName: selectedLocation.name,
                     serviceName: selectedItem.title,
@@ -124,30 +126,24 @@ export default function RedeemPage() {
                     suggestedTime = result.suggestedTime;
                     reasoning = result.reasoning;
                 }
-            } catch (error) {
-                console.error("Failed to get suggested time from AI:", error);
-                toast({
-                    title: "AI Suggestion Failed",
-                    description: "Could not get a suggested visit time, but you can still proceed.",
-                });
+            } catch (aiError) {
+                console.error("AI suggestion failed, but proceeding with default time:", aiError);
             }
         }
-        return { code, suggestedTime, reasoning };
-    };
-
-    generateDetails().then(details => {
-        setRedemptionDetails(details);
+        
+        setRedemptionDetails({ code, suggestedTime, reasoning });
         setDialogStep('confirmRedemption');
-        setIsGenerating(false);
-    }).catch(error => {
+
+    } catch (error) {
         console.error("A critical error occurred during voucher generation:", error);
         toast({
             variant: 'destructive',
             title: "Voucher Generation Failed",
             description: "An unexpected error occurred. Please try again.",
         });
+    } finally {
         setIsGenerating(false);
-    });
+    }
   };
 
   const handleConfirmRedemption = async () => {
@@ -417,3 +413,5 @@ export default function RedeemPage() {
     </>
   );
 }
+
+    
