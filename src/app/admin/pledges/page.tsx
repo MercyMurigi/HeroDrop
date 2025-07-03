@@ -10,6 +10,7 @@ import { MoreHorizontal, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { generateSmsNotification } from '@/ai/flows/generate-sms-notification';
 import { generateNextOfKinSms } from '@/ai/flows/generate-next-of-kin-sms';
+import { sendSms } from '@/lib/sms';
 
 const initialPledges = [
   { donorName: "Mercy Wairimu", nextOfKinName: "Samuel Wairimu", phone: "+254712345678", bloodType: "O+", pledgeDate: "2025-07-06", facility: "Mama Lucy Hospital", status: "Scheduled", currentTokens: 10 },
@@ -66,7 +67,12 @@ export default function PledgesPage() {
             hospitalName: pledge.facility,
         });
 
-        await Promise.all([donorSmsPromise, nextOfKinSmsPromise]);
+        const [donorSms, nextOfKinSms] = await Promise.all([donorSmsPromise, nextOfKinSmsPromise]);
+
+        await Promise.all([
+          sendSms(pledge.phone, donorSms.smsMessage),
+          sendSms(pledge.phone, nextOfKinSms.smsMessage) // TODO: Add next of kin phone number
+        ]);
         
         toast({
             title: "Donation Confirmed!",

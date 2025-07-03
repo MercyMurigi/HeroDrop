@@ -12,6 +12,7 @@ import type { FindFacilitiesOutput } from '@/ai/schemas/facilities';
 import { useToast } from '@/hooks/use-toast';
 import { generateSmsNotification } from '@/ai/flows/generate-sms-notification';
 import { generateNextOfKinSms } from '@/ai/flows/generate-next-of-kin-sms';
+import { sendSms } from '@/lib/sms';
 
 
 type Facility = FindFacilitiesOutput['facilities'][0];
@@ -65,11 +66,12 @@ export default function BookingPage() {
             hospitalName: selectedFacility.name,
         });
 
-        // Await both promises
-        const [donorSmsResult, nextOfKinSmsResult] = await Promise.all([donorSmsPromise, nextOfKinSmsPromise]);
+        const [donorSms, nextOfKinSms] = await Promise.all([donorSmsPromise, nextOfKinSmsPromise]);
 
-        console.log("Donor SMS:", donorSmsResult.smsMessage);
-        console.log("Next of Kin SMS:", nextOfKinSmsResult.smsMessage);
+        await Promise.all([
+          sendSms('+254712345678', donorSms.smsMessage), // TODO: Add donor phone number
+          sendSms('+254712345678', nextOfKinSms.smsMessage) // TODO: Add next of kin phone number
+        ]);
         
         const newAppointment = {
             id: Date.now(),
