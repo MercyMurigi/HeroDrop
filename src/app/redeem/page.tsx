@@ -60,8 +60,8 @@ type Facility = FindFacilitiesOutput['facilities'][0];
 
 type RedemptionDetails = {
   code: string;
-  suggestedTime: string | null;
-  reasoning: string | null;
+  suggestedTime: string;
+  reasoning: string;
 };
 
 
@@ -75,7 +75,6 @@ export default function RedeemPage() {
   const [dialogStep, setDialogStep] = useState<'selectLocation' | 'confirmRedemption'>('selectLocation');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
   const [redemptionDetails, setRedemptionDetails] = useState<RedemptionDetails | null>(null);
 
   useEffect(() => {
@@ -89,30 +88,6 @@ export default function RedeemPage() {
   const totalBalance = useMemo(() => {
     return transactions.reduce((acc, tx) => acc + tx.amount, 0);
   }, [transactions]);
-  
-  useEffect(() => {
-    if (dialogStep === 'confirmRedemption' && selectedItem?.category === 'service' && selectedLocation && redemptionDetails?.suggestedTime === null) {
-      const fetchSuggestion = async () => {
-        setIsSuggestionLoading(true);
-        try {
-          if ('availability' in selectedLocation) {
-            const result = await suggestRedemptionTime({
-              facilityName: selectedLocation.name,
-              serviceName: selectedItem.title,
-            });
-            setRedemptionDetails(prev => prev ? {...prev, suggestedTime: result.suggestedTime, reasoning: result.reasoning} : null);
-          }
-        } catch (error) {
-          console.error('AI suggestion failed, using default.', error);
-          setRedemptionDetails(prev => prev ? {...prev, suggestedTime: 'Anytime during opening hours', reasoning: "We couldn't get a specific time suggestion. Please check with the facility for their peak hours."} : null);
-        } finally {
-          setIsSuggestionLoading(false);
-        }
-      };
-      fetchSuggestion();
-    }
-  }, [dialogStep, selectedItem, selectedLocation, redemptionDetails]);
-
 
   const handleRedeemClick = (item: RedeemableItem) => {
     if (totalBalance < item.cost) {
@@ -130,29 +105,52 @@ export default function RedeemPage() {
     setIsDialogOpen(true);
   };
 
-  const proceedToConfirmation = () => {
+  const proceedToConfirmation = async () => {
     if (!selectedItem || !selectedLocation) {
-      toast({
-        variant: 'destructive',
-        title: 'Location Not Selected',
-        description: 'Please select a facility or store to continue.',
-      });
-      return;
+        toast({
+            variant: 'destructive',
+            title: 'Location Not Selected',
+            description: 'Please select a facility or store to continue.',
+        });
+        return;
     }
-    
+
     setIsGenerating(true);
-    // Generate code client-side, this is safe and reliable
-    const code = `${selectedItem.title
-      .substring(0, 4)
-      .toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      
-    setRedemptionDetails({
-      code,
-      suggestedTime: selectedItem.category === 'service' ? null : 'Anytime during opening hours',
-      reasoning: selectedItem.category === 'service' ? null : 'Please check the store for specific operating hours before visiting.',
-    });
-    setDialogStep('confirmRedemption');
-    setIsGenerating(false);
+
+    try {
+        const code = `${selectedItem.title
+            .substring(0, 4)
+            .toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+        let suggestedTime = 'Anytime during opening hours';
+        let reasoning = 'Please check with the location for their specific operating hours.';
+
+        if (selectedItem.category === 'service' && 'availability' in selectedLocation) {
+            try {
+                const result = await suggestRedemptionTime({
+                    facilityName: selectedLocation.name,
+                    serviceName: selectedItem.title,
+                });
+                suggestedTime = result.suggestedTime;
+                reasoning = result.reasoning;
+            } catch (aiError) {
+                console.error('AI suggestion failed, using default.', aiError);
+            }
+        }
+
+        setRedemptionDetails({ code, suggestedTime, reasoning });
+        setDialogStep('confirmRedemption');
+
+    } catch (error) {
+        console.error("Failed to proceed to confirmation:", error);
+        toast({
+            variant: 'destructive',
+            title: 'An Error Occurred',
+            description: 'Could not prepare your redemption details. Please try again.',
+        });
+    } finally {
+        setIsGenerating(false);
+    }
   };
 
 
@@ -285,31 +283,18 @@ export default function RedeemPage() {
                     <Clock className="h-6 w-6 text-primary" />
                     <div>
                       <p className="font-semibold text-primary">Suggested Visit Time</p>
-                       {isSuggestionLoading ? (
-                         <Skeleton className="h-6 w-40 mt-1" />
-                        ) : (
-                          <div className="text-lg font-bold">{redemptionDetails.suggestedTime}</div>
-                        )}
+                      <div className="text-lg font-bold">{redemptionDetails.suggestedTime}</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 mt-2 text-sm text-muted-foreground">
                     <Info className="h-4 w-4 mt-1 flex-shrink-0" />
-                    <div>
-                       {isSuggestionLoading ? (
-                          <div className="space-y-1">
-                            <Skeleton className="h-4 w-full" />
-                            <Skeleton className="h-4 w-5/6" />
-                          </div>
-                        ) : (
-                          redemptionDetails.reasoning
-                        )}
-                    </div>
+                    <div>{redemptionDetails.reasoning}</div>
                   </div>
                 </div>
               </div>
               <DialogFooter>
                 <Button type="button" variant="secondary" onClick={() => setDialogStep('selectLocation')}>Back</Button>
-                <Button onClick={handleConfirmRedemption} disabled={isConfirming || isSuggestionLoading}>
+                <Button onClick={handleConfirmRedemption} disabled={isConfirming}>
                   {isConfirming ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...
