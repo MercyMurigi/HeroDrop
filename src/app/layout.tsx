@@ -19,6 +19,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/';
+  const isAdminPage = pathname.startsWith('/admin');
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -30,7 +31,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased bg-background">
-        {isLoginPage ? children : <MainLayout>{children}</MainLayout>}
+        {isLoginPage || isAdminPage ? children : <MainLayout>{children}</MainLayout>}
         <Toaster />
       </body>
     </html>

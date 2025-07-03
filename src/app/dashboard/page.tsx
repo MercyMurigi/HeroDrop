@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Coins, CalendarCheck, MapPin, Clock } from 'lucide-react';
-import { SmsNotificationForm } from '@/components/sms-notification-form';
 
 export default function DashboardPage() {
   return (
@@ -41,18 +40,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="font-headline">SMS Notification Generator</CardTitle>
-          <CardDescription>
-            Test the GenAI-powered SMS notifications. Select a notification type and see the generated message.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SmsNotificationForm />
-        </CardContent>
-      </Card>
     </div>
   );
 }
