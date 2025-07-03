@@ -64,29 +64,25 @@ type RedemptionDetails = {
   reasoning: string;
 };
 
-type RedemptionState = {
-    step: 'selectLocation' | 'confirmRedemption';
-    details: RedemptionDetails | null;
-};
-
-
 export default function RedeemPage() {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  
+  // State for the dialog flow
   const [selectedItem, setSelectedItem] = useState<RedeemableItem | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<Facility | Vendor | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(false);
-  const [redemption, setRedemption] = useState<RedemptionState>({ step: 'selectLocation', details: null });
+  const [dialogStep, setDialogStep] = useState<'selectLocation' | 'confirmRedemption'>('selectLocation');
+  const [selectedLocation, setSelectedLocation] = useState<Facility | Vendor | null>(null);
+  const [redemptionDetails, setRedemptionDetails] = useState<RedemptionDetails | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const storedTransactions = localStorage.getItem('transactions');
     if (storedTransactions) {
       setTransactions(JSON.parse(storedTransactions));
     }
-    setIsLoading(false);
+    setIsPageLoading(false);
   }, []);
 
   const totalBalance = useMemo(() => {
@@ -102,38 +98,30 @@ export default function RedeemPage() {
       });
       return;
     }
+    // Reset all dialog states for a clean start
     setSelectedItem(item);
     setSelectedLocation(null);
-    setRedemption({ step: 'selectLocation', details: null });
+    setDialogStep('selectLocation');
+    setRedemptionDetails(null);
+    setIsProcessing(false);
     setIsDialogOpen(true);
   };
 
-  const proceedToConfirmation = async () => {
+  const handleProceedToConfirmation = async () => {
     if (!selectedItem || !selectedLocation) {
-        toast({
-            variant: 'destructive',
-            title: 'Location Not Selected',
-            description: 'Please select a facility or store to continue.',
-        });
+        toast({ variant: 'destructive', title: 'Location Not Selected', description: 'Please select a facility or store to continue.' });
         return;
     }
 
-    setIsGenerating(true);
-
+    setIsProcessing(true);
     try {
-        const code = `${selectedItem.title
-            .substring(0, 4)
-            .toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-
+        const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
         let suggestedTime = 'Anytime during opening hours';
         let reasoning = 'Please check with the location for their specific operating hours.';
 
-        if (selectedItem.category === 'service' && selectedLocation && 'availability' in selectedLocation) {
+        if (selectedItem.category === 'service' && 'availability' in selectedLocation) {
             try {
-                const result = await suggestRedemptionTime({
-                    facilityName: selectedLocation.name,
-                    serviceName: selectedItem.title,
-                });
+                const result = await suggestRedemptionTime({ facilityName: selectedLocation.name, serviceName: selectedItem.title });
                 suggestedTime = result.suggestedTime;
                 reasoning = result.reasoning;
             } catch (aiError) {
@@ -141,27 +129,20 @@ export default function RedeemPage() {
             }
         }
         
-        setRedemption({
-            step: 'confirmRedemption',
-            details: { code, suggestedTime, reasoning },
-        });
-
+        setRedemptionDetails({ code, suggestedTime, reasoning });
+        setDialogStep('confirmRedemption');
     } catch (error) {
-        console.error("Failed to proceed to confirmation:", error);
-        toast({
-            variant: 'destructive',
-            title: 'An Error Occurred',
-            description: 'Could not prepare your redemption details. Please try again.',
-        });
+        console.error("Failed to generate redemption details:", error);
+        toast({ variant: 'destructive', title: 'An Error Occurred', description: 'Could not prepare your redemption details. Please try again.' });
+        setIsDialogOpen(false);
     } finally {
-        setIsGenerating(false);
+        setIsProcessing(false);
     }
   };
 
-
   const handleConfirmRedemption = async () => {
-    if (!selectedItem || !selectedLocation || !redemption.details) return;
-    setIsConfirming(true);
+    if (!selectedItem || !selectedLocation || !redemptionDetails) return;
+    setIsProcessing(true);
     try {
       const userName = 'Jane Donor';
       
@@ -170,8 +151,8 @@ export default function RedeemPage() {
         userName: userName,
         tokenBalance: totalBalance - selectedItem.cost,
         serviceRedeemed: selectedItem.title,
-        redemptionCode: redemption.details.code,
-        suggestedTime: redemption.details.suggestedTime || "N/A",
+        redemptionCode: redemptionDetails.code,
+        suggestedTime: redemptionDetails.suggestedTime || "N/A",
       });
 
       const newTransaction: Transaction = {
@@ -186,26 +167,22 @@ export default function RedeemPage() {
 
       toast({
         title: 'Redemption Successful!',
-        description: `Your code is ${redemption.details.code}. Details sent via SMS.`,
+        description: `Your code is ${redemptionDetails.code}. Details sent via SMS.`,
         duration: 9000,
       });
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Redemption failed:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Redemption Failed',
-        description: 'Could not process your redemption. Please try again.',
-      });
+      toast({ variant: 'destructive', title: 'Redemption Failed', description: 'Could not process your redemption. Please try again.' });
     } finally {
-      setIsConfirming(false);
+      setIsProcessing(false);
     }
   };
   
   const renderDialogContent = () => {
     if (!selectedItem) return null;
 
-    if (redemption.step === 'selectLocation') {
+    if (dialogStep === 'selectLocation') {
       return (
         <>
           <DialogHeader>
@@ -216,31 +193,22 @@ export default function RedeemPage() {
           </DialogHeader>
           <div className="py-4">
             {selectedItem.category === 'service' ? (
-                <FacilityFinder onFacilitySelect={(facility) => setSelectedLocation(facility)} selectedFacility={selectedLocation as Facility | null} />
+                <FacilityFinder onFacilitySelect={setSelectedLocation} selectedFacility={selectedLocation as Facility | null} />
             ) : (
-                <PartnerVendorFinder onVendorSelect={(vendor) => setSelectedLocation(vendor)} selectedVendor={selectedLocation as Vendor | null} />
+                <PartnerVendorFinder onVendorSelect={setSelectedLocation} selectedVendor={selectedLocation as Vendor | null} />
             )}
           </div>
           <DialogFooter>
-             <DialogClose asChild>
-                <Button type="button" variant="secondary">Cancel</Button>
-            </DialogClose>
-            <Button onClick={proceedToConfirmation} disabled={!selectedLocation || isGenerating}>
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...
-                </>
-              ) : (
-                <>Next <ArrowRight className="ml-2 h-4 w-4" /></>
-              )}
+             <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
+            <Button onClick={handleProceedToConfirmation} disabled={!selectedLocation || isProcessing}>
+              {isProcessing ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</>) : (<>Next <ArrowRight className="ml-2 h-4 w-4" /></>)}
             </Button>
           </DialogFooter>
         </>
       );
     }
 
-    if (redemption.step === 'confirmRedemption' && redemption.details && selectedLocation) {
-        const { details } = redemption;
+    if (dialogStep === 'confirmRedemption' && redemptionDetails && selectedLocation) {
         return (
              <>
               <DialogHeader>
@@ -251,21 +219,15 @@ export default function RedeemPage() {
               </DialogHeader>
                <div className="py-4 space-y-4">
                 <div className="bg-primary/5 border-2 border-dashed border-primary/20 rounded-lg p-6 text-center">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Your Redemption Code
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Your Redemption Code</p>
                   <div className="flex items-center justify-center gap-3 mt-2">
                     <Ticket className="h-8 w-8 text-primary" />
-                    <p className="text-4xl font-bold tracking-widest text-primary">
-                      {details.code}
-                    </p>
+                    <p className="text-4xl font-bold tracking-widest text-primary">{redemptionDetails.code}</p>
                   </div>
                 </div>
 
                 <div className="rounded-lg border p-4 flex items-center gap-4">
-                  <div className="bg-primary/10 p-3 rounded-lg">
-                    <Tag className="h-6 w-6 text-primary" />
-                  </div>
+                  <div className="bg-primary/10 p-3 rounded-lg"><Tag className="h-6 w-6 text-primary" /></div>
                   <div>
                     <p className="font-semibold text-muted-foreground">You Will Receive</p>
                     <p className="text-lg font-bold">{selectedItem.redemptionValue}</p>
@@ -274,14 +236,9 @@ export default function RedeemPage() {
                 </div>
 
                 <div className="rounded-lg border p-4 space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Redemption Location
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Redemption Location</p>
                   <p className="font-semibold">{selectedLocation.name}</p>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 mr-1.5 flex-shrink-0" />
-                    <span>{selectedLocation.address}</span>
-                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground"><MapPin className="h-4 w-4 mr-1.5 flex-shrink-0" /><span>{selectedLocation.address}</span></div>
                 </div>
 
                 <div className="rounded-lg border p-4">
@@ -289,25 +246,16 @@ export default function RedeemPage() {
                     <Clock className="h-6 w-6 text-primary" />
                     <div>
                       <p className="font-semibold text-primary">Suggested Visit Time</p>
-                      <div className="text-lg font-bold">{details.suggestedTime}</div>
+                      <div className="text-lg font-bold">{redemptionDetails.suggestedTime}</div>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 mt-2 text-sm text-muted-foreground">
-                    <Info className="h-4 w-4 mt-1 flex-shrink-0" />
-                    <div>{details.reasoning}</div>
-                  </div>
+                  <div className="flex items-start gap-3 mt-2 text-sm text-muted-foreground"><Info className="h-4 w-4 mt-1 flex-shrink-0" /><div>{redemptionDetails.reasoning}</div></div>
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" variant="secondary" onClick={() => setRedemption({ step: 'selectLocation', details: null })}>Back</Button>
-                <Button onClick={handleConfirmRedemption} disabled={isConfirming}>
-                  {isConfirming ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...
-                    </>
-                  ) : (
-                    `Confirm & Redeem for ${selectedItem.cost} DT`
-                  )}
+                <Button type="button" variant="secondary" onClick={() => setDialogStep('selectLocation')}>Back</Button>
+                <Button onClick={handleConfirmRedemption} disabled={isProcessing}>
+                  {isProcessing ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...</>) : (`Confirm & Redeem for ${selectedItem.cost} DT`)}
                 </Button>
               </DialogFooter>
             </>
@@ -320,22 +268,16 @@ export default function RedeemPage() {
   const renderItemCard = (item: RedeemableItem, isItemLoading: boolean) => (
       <Card key={item.title} className="shadow-lg flex flex-col overflow-hidden group">
           <div className="relative h-48 w-full">
-            {isItemLoading ? <Skeleton className="h-full w-full" /> : <Image src={item.image} alt={item.title} layout="fill" objectFit="cover" className="transition-transform duration-300 group-hover:scale-105" data-ai-hint={item.hint} />}
+            {isItemLoading ? <Skeleton className="h-full w-full" /> : <Image src={item.image} alt={item.title} fill objectFit="cover" className="transition-transform duration-300 group-hover:scale-105" data-ai-hint={item.hint} />}
           </div>
           <CardHeader className="flex-grow">
             {isItemLoading ? (
-                <div className="space-y-2">
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-1/2" />
-                </div>
+                <div className="space-y-2"><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-1/2" /></div>
             ) : (
                 <>
                 <div className="flex justify-between items-start">
                     <CardTitle className="font-headline text-xl">{item.title}</CardTitle>
-                    <div className="bg-primary/10 p-3 rounded-lg -mt-2">
-                    <item.icon className="h-6 w-6 text-primary" />
-                    </div>
+                    <div className="bg-primary/10 p-3 rounded-lg -mt-2"><item.icon className="h-6 w-6 text-primary" /></div>
                 </div>
                 <CardDescription>{item.description}</CardDescription>
                 </>
@@ -344,19 +286,11 @@ export default function RedeemPage() {
           <CardContent className="mt-auto pt-4 border-t">
             <div className="flex justify-between items-center">
                 {isItemLoading ? (
-                    <>
-                        <Skeleton className="h-8 w-24" />
-                        <Skeleton className="h-10 w-28" />
-                    </>
+                    <><Skeleton className="h-8 w-24" /><Skeleton className="h-10 w-28" /></>
                 ) : (
                     <>
-                    <div className="flex items-center gap-2">
-                        <Coins className="h-6 w-6 text-primary" />
-                        <span className="text-2xl font-bold">{item.cost} DT</span>
-                    </div>
-                    <Button onClick={() => handleRedeemClick(item)} disabled={totalBalance < item.cost}>
-                        Redeem Now
-                    </Button>
+                    <div className="flex items-center gap-2"><Coins className="h-6 w-6 text-primary" /><span className="text-2xl font-bold">{item.cost} DT</span></div>
+                    <Button onClick={() => handleRedeemClick(item)} disabled={totalBalance < item.cost}>Redeem Now</Button>
                     </>
                 )}
             </div>
@@ -364,14 +298,11 @@ export default function RedeemPage() {
         </Card>
   )
 
-  if (isLoading) {
+  if (isPageLoading) {
     return (
       <div className="flex-1 space-y-8 p-4 md:p-8">
         <div className="flex items-center justify-between space-y-2">
-          <div>
-            <Skeleton className="h-8 w-64 rounded-md" />
-            <Skeleton className="h-4 w-96 mt-2 rounded-md" />
-          </div>
+          <div><Skeleton className="h-8 w-64 rounded-md" /><Skeleton className="h-4 w-96 mt-2 rounded-md" /></div>
           <Skeleton className="h-10 w-32 rounded-full" />
         </div>
         <Tabs defaultValue="health-services" className="space-y-4">
@@ -402,23 +333,17 @@ export default function RedeemPage() {
         
         <Tabs defaultValue="health-services" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2 h-auto">
-                <TabsTrigger value="health-services" className="py-3 text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    <Stethoscope className="mr-2" />
-                    Health Services
-                </TabsTrigger>
-                <TabsTrigger value="marketplace" className="py-3 text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    <ShoppingBag className="mr-2" />
-                    Partner Marketplace
-                </TabsTrigger>
+                <TabsTrigger value="health-services" className="py-3 text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Stethoscope className="mr-2" />Health Services</TabsTrigger>
+                <TabsTrigger value="marketplace" className="py-3 text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><ShoppingBag className="mr-2" />Partner Marketplace</TabsTrigger>
             </TabsList>
             <TabsContent value="health-services">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {healthServices.map(item => renderItemCard(item, isLoading))}
+                    {healthServices.map(item => renderItemCard(item, isPageLoading))}
                 </div>
             </TabsContent>
             <TabsContent value="marketplace">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {marketplaceItems.map(item => renderItemCard(item, isLoading))}
+                    {marketplaceItems.map(item => renderItemCard(item, isPageLoading))}
                 </div>
             </TabsContent>
         </Tabs>
