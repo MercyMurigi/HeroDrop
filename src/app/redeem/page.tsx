@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Coins, HeartPulse, ShieldCheck, Users, Stethoscope, ClipboardCheck, Loader2, ArrowRight, Ticket, Clock, Info } from 'lucide-react';
+import { Coins, HeartPulse, ShieldCheck, Stethoscope, ClipboardCheck, Loader2, ArrowRight, Ticket, Clock, Info, Package, Gift, Pill, Smile } from 'lucide-react';
 import Image from 'next/image';
 import {
   Dialog,
@@ -23,9 +23,12 @@ import type { FindFacilitiesOutput } from '@/ai/schemas/facilities';
 const services = [
   { title: 'General Checkup', cost: 60, icon: Stethoscope, description: "A comprehensive health checkup with a general practitioner.", image: "https://placehold.co/600x400.png", hint: "doctor checkup" },
   { title: 'Free Lab Test', cost: 100, icon: HeartPulse, description: "Includes tests for malaria, hemoglobin levels, and more.", image: "https://placehold.co/600x400.png", hint: "lab test" },
-  { title: 'Counseling Session', cost: 80, icon: Users, description: "A private session with a certified mental health counselor.", image: "https://placehold.co/600x400.png", hint: "counseling session" },
+  { title: 'Mental Health Session', cost: 80, icon: Smile, description: "A private session with a certified mental health professional.", image: "https://placehold.co/600x400.png", hint: "counseling session" },
   { title: 'Queue Priority (Fast-Pass)', cost: 30, icon: ShieldCheck, description: "Skip the line and get priority access at partner facilities.", image: "https://placehold.co/600x400.png", hint: "hospital queue" },
   { title: "Women's Health Screening", cost: 150, icon: ClipboardCheck, description: "Includes essential screenings like pap smear and breast exam.", image: "https://placehold.co/600x400.png", hint: "health screening" },
+  { title: 'Sanitary Pads', cost: 50, icon: Package, description: "A pack of high-quality sanitary pads from our partner brands.", image: "https://placehold.co/600x400.png", hint: "sanitary pads" },
+  { title: 'Wellness Kit', cost: 120, icon: Gift, description: "A curated wellness kit with essential vitamins and health products.", image: "https://placehold.co/600x400.png", hint: "wellness kit" },
+  { title: 'Over-the-Counter Meds', cost: 40, icon: Pill, description: "Redeem for common OTC medications like painkillers or allergy relief.", image: "https://placehold.co/600x400.png", hint: "medication pills" },
 ];
 
 type Transaction = {
@@ -232,7 +235,7 @@ export default function RedeemPage() {
         <div className="flex items-center justify-between space-y-2">
           <div>
             <h2 className="text-3xl font-bold tracking-tight font-headline">Redemption Store</h2>
-            <p className="text-muted-foreground">Use your DamuTokens to redeem valuable health services.</p>
+            <p className="text-muted-foreground">Use your DamuTokens to redeem valuable health services and products from our partners.</p>
           </div>
           <div className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-primary font-semibold">
               <Coins className="h-6 w-6" />
@@ -240,7 +243,7 @@ export default function RedeemPage() {
           </div>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {services.map((service) => (
             <Card key={service.title} className="shadow-lg flex flex-col overflow-hidden group">
               <div className="relative h-48 w-full">
