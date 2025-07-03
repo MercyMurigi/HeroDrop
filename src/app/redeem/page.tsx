@@ -64,6 +64,11 @@ type RedemptionDetails = {
   reasoning: string;
 };
 
+type RedemptionState = {
+    step: 'selectLocation' | 'confirmRedemption';
+    details: RedemptionDetails | null;
+};
+
 
 export default function RedeemPage() {
   const { toast } = useToast();
@@ -72,10 +77,9 @@ export default function RedeemPage() {
   const [selectedItem, setSelectedItem] = useState<RedeemableItem | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Facility | Vendor | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogStep, setDialogStep] = useState<'selectLocation' | 'confirmRedemption'>('selectLocation');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [redemptionDetails, setRedemptionDetails] = useState<RedemptionDetails | null>(null);
+  const [redemption, setRedemption] = useState<RedemptionState>({ step: 'selectLocation', details: null });
 
   useEffect(() => {
     const storedTransactions = localStorage.getItem('transactions');
@@ -100,8 +104,7 @@ export default function RedeemPage() {
     }
     setSelectedItem(item);
     setSelectedLocation(null);
-    setDialogStep('selectLocation');
-    setRedemptionDetails(null);
+    setRedemption({ step: 'selectLocation', details: null });
     setIsDialogOpen(true);
   };
 
@@ -125,7 +128,7 @@ export default function RedeemPage() {
         let suggestedTime = 'Anytime during opening hours';
         let reasoning = 'Please check with the location for their specific operating hours.';
 
-        if (selectedItem.category === 'service' && 'availability' in selectedLocation) {
+        if (selectedItem.category === 'service' && selectedLocation && 'availability' in selectedLocation) {
             try {
                 const result = await suggestRedemptionTime({
                     facilityName: selectedLocation.name,
@@ -137,9 +140,11 @@ export default function RedeemPage() {
                 console.error('AI suggestion failed, using default.', aiError);
             }
         }
-
-        setRedemptionDetails({ code, suggestedTime, reasoning });
-        setDialogStep('confirmRedemption');
+        
+        setRedemption({
+            step: 'confirmRedemption',
+            details: { code, suggestedTime, reasoning },
+        });
 
     } catch (error) {
         console.error("Failed to proceed to confirmation:", error);
@@ -155,7 +160,7 @@ export default function RedeemPage() {
 
 
   const handleConfirmRedemption = async () => {
-    if (!selectedItem || !selectedLocation || !redemptionDetails) return;
+    if (!selectedItem || !selectedLocation || !redemption.details) return;
     setIsConfirming(true);
     try {
       const userName = 'Jane Donor';
@@ -165,8 +170,8 @@ export default function RedeemPage() {
         userName: userName,
         tokenBalance: totalBalance - selectedItem.cost,
         serviceRedeemed: selectedItem.title,
-        redemptionCode: redemptionDetails.code,
-        suggestedTime: redemptionDetails.suggestedTime || "N/A",
+        redemptionCode: redemption.details.code,
+        suggestedTime: redemption.details.suggestedTime || "N/A",
       });
 
       const newTransaction: Transaction = {
@@ -181,7 +186,7 @@ export default function RedeemPage() {
 
       toast({
         title: 'Redemption Successful!',
-        description: `Your code is ${redemptionDetails.code}. Details sent via SMS.`,
+        description: `Your code is ${redemption.details.code}. Details sent via SMS.`,
         duration: 9000,
       });
       setIsDialogOpen(false);
@@ -200,7 +205,7 @@ export default function RedeemPage() {
   const renderDialogContent = () => {
     if (!selectedItem) return null;
 
-    if (dialogStep === 'selectLocation') {
+    if (redemption.step === 'selectLocation') {
       return (
         <>
           <DialogHeader>
@@ -234,7 +239,8 @@ export default function RedeemPage() {
       );
     }
 
-    if (dialogStep === 'confirmRedemption' && redemptionDetails && selectedLocation) {
+    if (redemption.step === 'confirmRedemption' && redemption.details && selectedLocation) {
+        const { details } = redemption;
         return (
              <>
               <DialogHeader>
@@ -251,7 +257,7 @@ export default function RedeemPage() {
                   <div className="flex items-center justify-center gap-3 mt-2">
                     <Ticket className="h-8 w-8 text-primary" />
                     <p className="text-4xl font-bold tracking-widest text-primary">
-                      {redemptionDetails.code}
+                      {details.code}
                     </p>
                   </div>
                 </div>
@@ -283,17 +289,17 @@ export default function RedeemPage() {
                     <Clock className="h-6 w-6 text-primary" />
                     <div>
                       <p className="font-semibold text-primary">Suggested Visit Time</p>
-                      <div className="text-lg font-bold">{redemptionDetails.suggestedTime}</div>
+                      <div className="text-lg font-bold">{details.suggestedTime}</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 mt-2 text-sm text-muted-foreground">
                     <Info className="h-4 w-4 mt-1 flex-shrink-0" />
-                    <div>{redemptionDetails.reasoning}</div>
+                    <div>{details.reasoning}</div>
                   </div>
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" variant="secondary" onClick={() => setDialogStep('selectLocation')}>Back</Button>
+                <Button type="button" variant="secondary" onClick={() => setRedemption({ step: 'selectLocation', details: null })}>Back</Button>
                 <Button onClick={handleConfirmRedemption} disabled={isConfirming}>
                   {isConfirming ? (
                     <>
