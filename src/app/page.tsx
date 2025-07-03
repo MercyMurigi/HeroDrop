@@ -1,8 +1,8 @@
 "use client";
 
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Droplet } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,19 +33,8 @@ export default function AuthPage() {
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="relative flex items-center justify-center p-6 sm:p-12 bg-background overflow-hidden">
-        
-        <div className="absolute top-0 left-0 w-full overflow-hidden leading-none z-0">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="relative block w-[calc(100%+1.3px)] h-[250px] sm:h-[320px]">
-                <path
-                    fill="hsl(var(--primary))"
-                    fillOpacity="1"
-                    d="M0,160L48,170.7C96,181,192,203,288,208C384,213,480,203,576,176C672,149,768,107,864,106.7C960,107,1056,149,1152,160C1248,171,1344,149,1392,138.7L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
-                ></path>
-            </svg>
-        </div>
-
-        <div className="relative z-10 mx-auto grid w-full max-w-[400px] gap-6">
+      <div className="flex items-center justify-center p-6 sm:p-12 bg-background">
+        <div className="mx-auto grid w-full max-w-[400px] gap-6">
           <div className="grid gap-2 text-center">
             <div className="flex justify-center mb-2">
               <Logo />
@@ -162,15 +151,24 @@ export default function AuthPage() {
           </Tabs>
         </div>
       </div>
-      <div className="hidden lg:block">
-        <Image
-          src="https://placehold.co/1920x1080.png"
-          alt="A smiling doctor holding a tablet in a modern clinic"
-          width="1920"
-          height="1080"
-          className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-          data-ai-hint="doctor clinic"
-        />
+      <div className="hidden lg:flex items-center justify-center p-12 bg-primary relative">
+        <svg
+          className="absolute top-0 left-0 h-full"
+          style={{ width: '150px' }}
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M0,0 C40,33 40,66 0,100" fill="hsl(var(--background))" />
+        </svg>
+
+        <div className="relative z-10 text-center text-primary-foreground">
+            <Droplet className="h-40 w-40 opacity-50 mx-auto" fill="currentColor" />
+            <h2 className="mt-6 text-4xl font-bold font-headline">Every Drop Counts</h2>
+            <p className="mt-4 max-w-sm text-primary-foreground/80">
+                Your donation is a lifeline for someone in need. Join our community of heroes and make a difference today.
+            </p>
+        </div>
       </div>
     </div>
   );
