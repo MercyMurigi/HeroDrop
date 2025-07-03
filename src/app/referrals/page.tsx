@@ -54,8 +54,8 @@ export default function ReferralsPage() {
         <Card className="shadow-lg">
           <CardHeader>
             <div className="flex items-center gap-4">
-              <div className="bg-accent/10 p-3 rounded-lg">
-                <Share2 className="h-8 w-8 text-accent" />
+              <div className="bg-primary/10 p-3 rounded-lg">
+                <Share2 className="h-8 w-8 text-primary" />
               </div>
               <div>
                 <CardTitle className="font-headline">Share on Social Media</CardTitle>

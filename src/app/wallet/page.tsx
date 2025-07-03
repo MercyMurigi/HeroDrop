@@ -5,14 +5,14 @@ import { Coins, PlusCircle, MinusCircle } from 'lucide-react';
 
 const transactions = [
   { date: '2024-07-22', description: 'Completed blood donation', amount: 100, type: 'credit' },
-  { date: '2024-07-22', description: 'Attended testing appointment', amount: 20, type: 'credit' },
   { date: '2024-07-21', description: 'Sign-up & Pledge', amount: 10, type: 'credit' },
-  { date: '2024-07-20', description: 'Redeemed: General checkup', amount: -60, type: 'debit' },
   { date: '2024-07-15', description: 'Refer a friend: Alex', amount: 30, type: 'credit' },
-  { date: '2024-07-10', description: 'Shared badge on social media', amount: 10, type: 'credit' },
+  { date: '2024-07-10', description: 'Redeemed: Queue Priority', amount: -10, type: 'debit' },
 ];
 
 export default function WalletPage() {
+  const totalBalance = transactions.reduce((acc, tx) => acc + tx.amount, 0);
+
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
       <div className="flex items-center justify-between space-y-2">
@@ -26,7 +26,7 @@ export default function WalletPage() {
         <CardContent>
           <div className="flex items-center justify-center gap-4">
             <Coins className="h-16 w-16" />
-            <span className="text-7xl font-bold">130</span>
+            <span className="text-7xl font-bold">{totalBalance}</span>
           </div>
           <p className="mt-2 text-primary-foreground/80">DamuTokens</p>
         </CardContent>

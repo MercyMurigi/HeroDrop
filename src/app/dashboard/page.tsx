@@ -23,7 +23,7 @@ const badges = [
 
 const transactions = [
     { date: '2024-07-22', description: 'Completed blood donation', amount: 100, type: 'credit' },
-    { date: '2024-07-20', description: 'Redeemed: General checkup', amount: -60, type: 'debit' },
+    { date: '2024-07-21', description: 'Sign-up & Pledge', amount: 10, type: 'credit' },
     { date: '2024-07-15', description: 'Refer a friend: Alex', amount: 30, type: 'credit' },
 ];
 
