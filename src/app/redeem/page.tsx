@@ -98,39 +98,58 @@ export default function RedeemPage() {
   };
 
   const proceedToConfirmation = async () => {
-    if (!selectedItem || !selectedLocation) return;
+    if (!selectedItem || !selectedLocation) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Please select an item and location first.",
+        });
+        return;
+    }
 
     setIsGenerating(true);
 
     try {
-      const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`;
-      let suggestionResult;
+        const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+        let finalSuggestedTime = "";
+        let finalReasoning = "";
 
-      if (selectedItem.category === 'service') {
-        const facility = selectedLocation as Facility;
-        suggestionResult = await suggestRedemptionTime({
-          facilityName: facility.name,
-          serviceName: selectedItem.title,
+        if (selectedItem.category === 'service') {
+            // A type guard to ensure we have a facility for a service
+            if ('availability' in selectedLocation) {
+                const result = await suggestRedemptionTime({
+                    facilityName: selectedLocation.name,
+                    serviceName: selectedItem.title,
+                });
+                if (!result || !result.suggestedTime) {
+                    throw new Error("AI failed to suggest a time.");
+                }
+                finalSuggestedTime = result.suggestedTime;
+                finalReasoning = result.reasoning;
+            } else {
+                throw new Error("Invalid location type for a health service.");
+            }
+        } else { // It's a product
+            finalSuggestedTime = "Anytime during opening hours";
+            finalReasoning = "This is a product voucher. Please check the partner store for specific operating hours before visiting.";
+        }
+
+        setRedemptionDetails({
+            code,
+            suggestedTime: finalSuggestedTime,
+            reasoning: finalReasoning,
         });
-      } else {
-        suggestionResult = {
-          suggestedTime: "Anytime during opening hours",
-          reasoning: "This is a product voucher. Please check the partner store for specific operating hours before visiting."
-        };
-      }
-      
-      setRedemptionDetails({ code, ...suggestionResult });
-      setDialogStep('confirmRedemption');
+        setDialogStep('confirmRedemption');
 
     } catch (error) {
-      console.error("Failed to generate redemption details:", error);
-      toast({
-        variant: "destructive",
-        title: "Action Failed",
-        description: "Could not generate redemption details. Please try again.",
-      });
+        console.error("Failed to generate redemption details:", error);
+        toast({
+            variant: "destructive",
+            title: "Action Failed",
+            description: "Could not generate redemption details. Please try again.",
+        });
     } finally {
-      setIsGenerating(false);
+        setIsGenerating(false);
     }
   };
 
