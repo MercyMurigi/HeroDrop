@@ -188,7 +188,7 @@ export function SmsNotificationForm() {
         </form>
       </Form>
 
-      <Card className="bg-background border-2 border-dashed flex items-center justify-center min-h-[200px]">
+      <Card className="bg-muted/30 border-2 border-dashed flex items-center justify-center min-h-[200px]">
         <CardContent className="p-6 text-center">
           {isLoading ? (
              <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -197,7 +197,7 @@ export function SmsNotificationForm() {
              </div>
           ) : generatedSms ? (
             <div className="flex flex-col items-center gap-4">
-              <MessageSquareText className="h-12 w-12 text-accent" />
+              <MessageSquareText className="h-12 w-12 text-primary" />
               <p className="text-lg font-medium text-foreground bg-white p-4 rounded-lg shadow-inner">
                 {generatedSms}
               </p>

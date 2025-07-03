@@ -6,7 +6,7 @@ import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui
 import { LayoutDashboard, CalendarPlus, Wallet, ShoppingBag, Gift } from 'lucide-react';
 
 const menuItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/booking', label: 'Book Donation', icon: CalendarPlus },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
   { href: '/redeem', 'label': 'Redeem Tokens', icon: ShoppingBag },
@@ -16,13 +16,20 @@ const menuItems = [
 export function NavMenu() {
   const pathname = usePathname();
 
+  const isActive = (href: string) => {
+    if (href === '/dashboard') {
+      return pathname === href || pathname === '/';
+    }
+    return pathname.startsWith(href);
+  }
+
   return (
     <SidebarMenu>
       {menuItems.map((item) => (
         <SidebarMenuItem key={item.href}>
           <SidebarMenuButton
             asChild
-            isActive={pathname === item.href}
+            isActive={isActive(item.href)}
           >
             <Link href={item.href}>
               <item.icon className="text-primary" />

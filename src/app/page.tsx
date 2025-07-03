@@ -1,58 +1,80 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Coins, CalendarCheck, MapPin, Clock } from 'lucide-react';
-import { SmsNotificationForm } from '@/components/sms-notification-form';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Logo } from '@/components/logo';
 
-export default function DashboardPage() {
+export default function LoginPage() {
   return (
-    <div className="flex-1 space-y-6 p-4 md:p-8">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight font-headline">Dashboard</h2>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">DamuTokens Balance</CardTitle>
-            <Coins className="h-5 w-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold text-primary">130 DT</div>
-            <p className="text-xs text-muted-foreground">
-              +100 DT from your last donation
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+      <div className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+            <div className="flex justify-center">
+              <Logo />
+            </div>
+            <h1 className="text-3xl font-bold">Welcome Back</h1>
+            <p className="text-balance text-muted-foreground">
+              Enter your credentials to access your donor portal.
             </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Appointment</CardTitle>
-            <CalendarCheck className="h-5 w-5 text-accent" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">Nairobi Central Hospital</div>
-            <div className="flex items-center text-sm text-muted-foreground mt-1">
-              <Clock className="h-4 w-4 mr-2" />
-              <span>Tomorrow, 10:30 AM</span>
-            </div>
-            <div className="flex items-center text-sm text-muted-foreground mt-1">
-              <MapPin className="h-4 w-4 mr-2" />
-              <span>123 Hospital Rd, Nairobi</span>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Login</CardTitle>
+              <CardDescription>
+                Use your email and password to login.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <Link
+                    href="#"
+                    className="ml-auto inline-block text-sm underline"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+                <Input id="password" type="password" required />
+              </div>
+              <Button type="submit" className="w-full" asChild>
+                <Link href="/dashboard">Login</Link>
+              </Button>
+              <Button variant="outline" className="w-full">
+                Login with Google
+              </Button>
+            </CardContent>
+          </Card>
+          <div className="mt-4 text-center text-sm">
+            Don&apos;t have an account?{' '}
+            <Link href="#" className="underline">
+              Sign up
+            </Link>
+          </div>
+        </div>
       </div>
-
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="font-headline">SMS Notification Generator</CardTitle>
-          <CardDescription>
-            Test the GenAI-powered SMS notifications. Select a notification type and see the generated message.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SmsNotificationForm />
-        </CardContent>
-      </Card>
+      <div className="hidden bg-muted lg:block">
+        <Image
+          src="https://placehold.co/1920x1080.png"
+          alt="A person donating blood"
+          width="1920"
+          height="1080"
+          className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+          data-ai-hint="blood donation"
+        />
+      </div>
     </div>
   );
 }
