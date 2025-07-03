@@ -276,12 +276,12 @@ export default function RedeemPage() {
         </div>
         
         <Tabs defaultValue="health-services" className="space-y-4">
-            <TabsList>
-                <TabsTrigger value="health-services">
+            <TabsList className="grid w-full grid-cols-2 h-auto">
+                <TabsTrigger value="health-services" className="py-3 text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                     <Stethoscope className="mr-2" />
                     Health Services
                 </TabsTrigger>
-                <TabsTrigger value="marketplace">
+                <TabsTrigger value="marketplace" className="py-3 text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                     <ShoppingBag className="mr-2" />
                     Partner Marketplace
                 </TabsTrigger>
