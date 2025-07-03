@@ -1,9 +1,12 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Coins, CalendarCheck, MapPin, Clock, Award, Droplets, HeartPulse, PlusCircle, MinusCircle, CalendarPlus, Shield, Star, Heart } from 'lucide-react';
-import Link from "next/link";
 
 const stats = [
   { title: "DamuTokens Balance", value: "130 DT", icon: Coins, color: "text-primary", note: "+100 from last donation" },
@@ -24,7 +27,24 @@ const transactions = [
     { date: '2024-07-15', description: 'Refer a friend: Alex', amount: 30, type: 'credit' },
 ];
 
+type UpcomingAppointment = {
+  facility: {
+    name: string;
+    address: string;
+  };
+  date: string; // ISO string
+};
+
 export default function DashboardPage() {
+  const [appointment, setAppointment] = useState<UpcomingAppointment | null>(null);
+
+  useEffect(() => {
+    const storedAppointment = localStorage.getItem('upcomingAppointment');
+    if (storedAppointment) {
+      setAppointment(JSON.parse(storedAppointment));
+    }
+  }, []);
+
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
       <div className="flex items-center justify-between space-y-2 opacity-0 animate-fade-in-up" style={{ animationDelay: '0ms', animationFillMode: 'forwards' }}>
@@ -67,21 +87,35 @@ export default function DashboardPage() {
             >
               <CardHeader>
                   <CardTitle className="font-headline">Upcoming Appointment</CardTitle>
-                  <CardDescription>Your next donation is scheduled. We can't wait to see you!</CardDescription>
+                  <CardDescription>
+                    {appointment ? "Your next donation is scheduled. We can't wait to see you!" : "You have no upcoming appointments."}
+                  </CardDescription>
               </CardHeader>
               <CardContent>
-                  <div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
-                      <div className="text-xl font-bold text-primary">Nairobi Central Hospital</div>
-                      <div className="flex items-center text-sm text-muted-foreground mt-2">
-                          <Clock className="h-4 w-4 mr-2 flex-shrink-0" />
-                          <span>Tomorrow, 10:30 AM</span>
-                      </div>
-                      <div className="flex items-center text-sm text-muted-foreground mt-1">
-                          <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                          <span>123 Hospital Rd, Nairobi</span>
-                      </div>
+                  {appointment ? (
+                    <div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
+                        <div className="text-xl font-bold text-primary">{appointment.facility.name}</div>
+                        <div className="flex items-center text-sm text-muted-foreground mt-2">
+                            <Clock className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <span>{new Date(appointment.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-muted-foreground mt-1">
+                            <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <span>{appointment.facility.address}</span>
+                        </div>
                        <Button variant="outline" size="sm" className="mt-4">Reschedule / Cancel</Button>
-                  </div>
+                    </div>
+                  ) : (
+                     <div className="text-center text-muted-foreground p-4 flex flex-col items-center justify-center">
+                        <p className="mb-4">Book a new appointment to save lives!</p>
+                        <Button asChild>
+                            <Link href="/booking">
+                                <CalendarPlus className="mr-2 h-4 w-4" />
+                                Book Donation
+                            </Link>
+                        </Button>
+                    </div>
+                  )}
               </CardContent>
             </Card>
 

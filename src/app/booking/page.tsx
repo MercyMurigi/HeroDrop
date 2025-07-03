@@ -70,6 +70,15 @@ export default function BookingPage() {
 
         console.log("Donor SMS:", donorSmsResult.smsMessage);
         console.log("Next of Kin SMS:", nextOfKinSmsResult.smsMessage);
+        
+        const appointmentDetails = {
+            facility: {
+                name: selectedFacility.name,
+                address: selectedFacility.address,
+            },
+            date: selectedDate.toISOString(),
+        };
+        localStorage.setItem('upcomingAppointment', JSON.stringify(appointmentDetails));
 
         toast({
             title: "Appointment Confirmed!",
