@@ -51,7 +51,6 @@ type UpcomingAppointment = {
 export default function DashboardPage() {
   const [appointment, setAppointment] = useState<UpcomingAppointment | null>(null);
   const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
-  const [isConfirmDonationAlertOpen, setIsConfirmDonationAlertOpen] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const router = useRouter();
   const { toast } = useToast();
@@ -96,31 +95,6 @@ export default function DashboardPage() {
       variant: 'destructive',
     });
     setIsCancelAlertOpen(false);
-  };
-
-  const handleDonationCompleted = () => {
-    if (!appointment) return;
-    localStorage.removeItem('upcomingAppointment');
-    setAppointment(null);
-
-    const donationTransaction = {
-        date: new Date().toLocaleDateString('en-CA'),
-        description: `Donation at ${appointment.facility.name}`,
-        amount: 100,
-        type: 'credit' as 'credit',
-    };
-    
-    setTransactions(prevTransactions => {
-        const newTransactions = [donationTransaction, ...prevTransactions];
-        localStorage.setItem('transactions', JSON.stringify(newTransactions));
-        return newTransactions;
-    });
-
-    toast({
-        title: "Donation Confirmed!",
-        description: "Thank you heroic donor! 100 DamuTokens have been added to your wallet.",
-    });
-    setIsConfirmDonationAlertOpen(false);
   };
   
   const totalBalance = transactions.reduce((acc, tx) => acc + tx.amount, 0);
@@ -198,13 +172,6 @@ export default function DashboardPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => setIsConfirmDonationAlertOpen(true)}
-                                className="font-semibold text-green-600 focus:bg-green-100 focus:text-green-700"
-                              >
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Mark as Donated
-                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => router.push('/booking')}>
                                 Reschedule
                               </DropdownMenuItem>
@@ -299,27 +266,6 @@ export default function DashboardPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <AlertDialog open={isConfirmDonationAlertOpen} onOpenChange={setIsConfirmDonationAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Your Donation</AlertDialogTitle>
-            <AlertDialogDescription>
-              Please confirm you have completed your donation. This will credit 100 DamuTokens to your account and make you a true hero!
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Not Yet</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDonationCompleted}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              Yes, I Donated!
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
     </div>
   );
 }

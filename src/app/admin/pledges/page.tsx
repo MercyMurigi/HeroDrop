@@ -1,29 +1,54 @@
+'use client';
+
+import { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, CheckCircle, XCircle } from "lucide-react";
+import { useToast } from '@/hooks/use-toast';
 
-const pledges = [
+const initialPledges = [
   { donorName: "Mercy Wairimu", phone: "+254712345678", bloodType: "O+", pledgeDate: "2025-07-06", facility: "Mama Lucy Hospital", status: "Scheduled" },
   { donorName: "John Omondi", phone: "+254723456789", bloodType: "A-", pledgeDate: "2025-07-05", facility: "Kenyatta National Hospital", status: "Completed" },
   { donorName: "Fatuma Ali", phone: "+254734567890", bloodType: "B+", pledgeDate: "2025-07-04", facility: "Aga Khan Hospital", status: "Scheduled" },
-  { donorName: "David Kimani", phone: "+254745678901", bloodType: "AB+", pledgeDate: "2025-07-03", facility: "Nairobi Hospital", status: "Missed" },
+  { donorName: "David Kimani", phone: "+254745678901", bloodType: "AB+", pledgeDate: "2025-07-03", facility: "Nairobi Hospital", status: "Cancelled" },
   { donorName: "Grace Nabwire", phone: "+254756789012", bloodType: "O-", pledgeDate: "2025-07-02", facility: "M.P. Shah Hospital", status: "Completed" },
 ];
 
+type PledgeStatus = "Scheduled" | "Completed" | "Cancelled";
+
 export default function PledgesPage() {
+  const [pledges, setPledges] = useState(initialPledges);
+  const { toast } = useToast();
+
   const getStatusVariant = (status: string) => {
     switch (status) {
       case "Completed":
         return "default";
       case "Scheduled":
         return "secondary";
-      case "Missed":
+      case "Cancelled":
         return "destructive";
       default:
         return "outline";
+    }
+  };
+
+  const handleUpdateStatus = (phone: string, status: PledgeStatus) => {
+    setPledges(pledges.map(p => p.phone === phone ? { ...p, status } : p));
+    if (status === 'Completed') {
+      toast({
+        title: "Donation Confirmed!",
+        description: "The pledge status is updated and 100 DamuTokens have been awarded to the donor.",
+      });
+    } else if (status === 'Cancelled') {
+      toast({
+        title: "Pledge Cancelled",
+        description: "The pledge has been cancelled. 10 DamuTokens will be deducted from the donor.",
+        variant: 'destructive'
+      });
     }
   };
 
@@ -76,9 +101,18 @@ export default function PledgesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Confirm</DropdownMenuItem>
-                        <DropdownMenuItem>Mark as Donated</DropdownMenuItem>
-                        <DropdownMenuItem>Cancel</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleUpdateStatus(pledge.phone, 'Completed')} disabled={pledge.status === 'Completed'}>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Mark as Completed
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleUpdateStatus(pledge.phone, 'Cancelled')} 
+                          disabled={pledge.status !== 'Scheduled'} 
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <XCircle className="mr-2 h-4 w-4" />
+                          Cancel Pledge
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
