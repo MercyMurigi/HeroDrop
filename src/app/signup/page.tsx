@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,10 +13,11 @@ import { Droplet } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
+  const [email, setEmail] = useState('');
 
-  const handleSignup = () => {
-    // For now, just go to the dashboard. In a real app, this would handle account creation.
-    router.push('/dashboard');
+  const handleSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(`/signup/verify?email=${encodeURIComponent(email)}`);
   }
 
   return (
@@ -33,7 +35,8 @@ export default function SignupPage() {
              Fill in your details to join our community of lifesavers.
            </CardDescription>
          </CardHeader>
-         <CardContent className="grid gap-4">
+         <CardContent>
+           <form onSubmit={handleSignup} className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                     <Label htmlFor="full-name">Full Name</Label>
@@ -43,6 +46,17 @@ export default function SignupPage() {
                     <Label htmlFor="id-number">National ID</Label>
                     <Input id="id-number" placeholder="12345678" required />
                 </div>
+            </div>
+             <div className="grid gap-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                    id="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="phone-number">Phone Number</Label>
@@ -72,14 +86,14 @@ export default function SignupPage() {
                 </Select>
             </div>
             <div className="items-top flex space-x-2 pt-2">
-                <Checkbox id="eligibility" />
+                <Checkbox id="eligibility" required />
                 <div className="grid gap-1.5 leading-none">
                     <Label htmlFor="eligibility" className="font-normal text-muted-foreground">
                         I confirm I meet basic eligibility criteria (age 16-65, over 50kg).
                     </Label>
                 </div>
             </div>
-            <Button onClick={handleSignup} className="w-full" size="lg">
+            <Button type="submit" className="w-full" size="lg">
               Create Account
             </Button>
             <div className="mt-4 text-center text-sm">
@@ -88,6 +102,7 @@ export default function SignupPage() {
                 Login
               </Link>
             </div>
+           </form>
          </CardContent>
        </Card>
     </div>
