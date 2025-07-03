@@ -2,13 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Droplet } from 'lucide-react';
+import { Droplet, Heart, Activity, Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Logo } from '@/components/logo';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,16 +30,29 @@ export default function AuthPage() {
     // For now, just go to the dashboard. In a real app, this would handle account creation.
     router.push('/dashboard');
   }
+  
+  const AnimatedIcon = ({ icon: Icon, className, animation }: any) => (
+    <Icon className={cn("absolute text-primary/10", className, animation)} />
+  );
 
   return (
-    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="flex items-center justify-center p-6 sm:p-12 bg-background">
-        <div className="mx-auto grid w-full max-w-[400px] gap-6">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden p-6 bg-background">
+        <AnimatedIcon icon={Droplet} className="h-24 w-24 top-1/4 left-1/4" animation="animate-float-1" />
+        <AnimatedIcon icon={Heart} className="h-20 w-20 top-1/2 right-1/4" animation="animate-float-2" />
+        <AnimatedIcon icon={Activity} className="h-16 w-16 bottom-1/4 left-1/3" animation="animate-float-3" />
+        <AnimatedIcon icon={Plus} className="h-12 w-12 bottom-1/3 right-1/3" animation="animate-float-1" />
+        <AnimatedIcon icon={Droplet} className="h-28 w-28 top-3/4 left-1/2" animation="animate-float-2" />
+        <AnimatedIcon icon={Heart} className="h-10 w-10 top-1/3 right-1/2" animation="animate-float-3" />
+
+        <div className="mx-auto grid w-full max-w-[400px] gap-6 z-10">
           <div className="grid gap-2 text-center">
-            <div className="flex justify-center mb-2">
-              <Logo />
+            <div className="flex items-center justify-center gap-4 mb-2">
+                <Droplet className="h-12 w-12 text-primary" fill="currentColor" />
+                <h1 className="text-4xl font-bold text-primary font-headline">
+                    HeroDrop+
+                </h1>
             </div>
-            <h1 className="text-3xl font-bold font-headline">A Healthier Future Starts With You</h1>
+            <h2 className="text-3xl font-bold font-headline">A Healthier Future Starts With You</h2>
             <p className="text-balance text-muted-foreground">
               Join HeroDrop+ to donate blood, earn rewards, and save lives. Your single act of kindness can make a world of difference.
             </p>
@@ -150,26 +163,6 @@ export default function AuthPage() {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
-      <div className="hidden lg:flex items-center justify-center p-12 bg-primary relative">
-        <svg
-          className="absolute top-0 left-0 h-full"
-          style={{ width: '150px' }}
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M0,0 C40,33 40,66 0,100" fill="hsl(var(--background))" />
-        </svg>
-
-        <div className="relative z-10 text-center text-primary-foreground">
-            <Droplet className="h-40 w-40 opacity-50 mx-auto" fill="currentColor" />
-            <h2 className="mt-6 text-4xl font-bold font-headline">Every Drop Counts</h2>
-            <p className="mt-4 max-w-sm text-primary-foreground/80">
-                Your donation is a lifeline for someone in need. Join our community of heroes and make a difference today.
-            </p>
-        </div>
-      </div>
     </div>
   );
 }
