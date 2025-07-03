@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateSmsNotification } from '@/ai/flows/generate-sms-notification';
 import { suggestRedemptionTime } from '@/ai/flows/suggest-redemption-time';
 import type { FindFacilitiesOutput } from '@/ai/schemas/facilities';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const healthServices = [
   { title: 'General Checkup', cost: 60, icon: Stethoscope, description: "A comprehensive health checkup with a general practitioner.", image: "https://placehold.co/600x400.png", hint: "doctor checkup" },
@@ -46,6 +47,7 @@ type Facility = FindFacilitiesOutput['facilities'][0];
 
 export default function RedeemPage() {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedItem, setSelectedItem] = useState<RedeemableItem | null>(null);
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
@@ -60,6 +62,7 @@ export default function RedeemPage() {
     if (storedTransactions) {
       setTransactions(JSON.parse(storedTransactions));
     }
+    setIsLoading(false);
   }, []);
 
   const totalBalance = useMemo(() => {
@@ -233,33 +236,74 @@ export default function RedeemPage() {
     return null;
   }
   
-  const renderItemCard = (item: RedeemableItem) => (
+  const renderItemCard = (item: RedeemableItem, isItemLoading: boolean) => (
       <Card key={item.title} className="shadow-lg flex flex-col overflow-hidden group">
           <div className="relative h-48 w-full">
-            <Image src={item.image} alt={item.title} layout="fill" objectFit="cover" className="transition-transform duration-300 group-hover:scale-105" data-ai-hint={item.hint} />
+            {isItemLoading ? <Skeleton className="h-full w-full" /> : <Image src={item.image} alt={item.title} layout="fill" objectFit="cover" className="transition-transform duration-300 group-hover:scale-105" data-ai-hint={item.hint} />}
           </div>
           <CardHeader className="flex-grow">
-              <div className="flex justify-between items-start">
-                <CardTitle className="font-headline text-xl">{item.title}</CardTitle>
-                <div className="bg-primary/10 p-3 rounded-lg -mt-2">
-                  <item.icon className="h-6 w-6 text-primary" />
+            {isItemLoading ? (
+                <div className="space-y-2">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-1/2" />
                 </div>
-              </div>
-              <CardDescription>{item.description}</CardDescription>
+            ) : (
+                <>
+                <div className="flex justify-between items-start">
+                    <CardTitle className="font-headline text-xl">{item.title}</CardTitle>
+                    <div className="bg-primary/10 p-3 rounded-lg -mt-2">
+                    <item.icon className="h-6 w-6 text-primary" />
+                    </div>
+                </div>
+                <CardDescription>{item.description}</CardDescription>
+                </>
+            )}
           </CardHeader>
           <CardContent className="mt-auto pt-4 border-t">
             <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Coins className="h-6 w-6 text-primary" />
-                <span className="text-2xl font-bold">{item.cost} DT</span>
-              </div>
-              <Button onClick={() => handleRedeemClick(item)} disabled={totalBalance < item.cost}>
-                Redeem Now
-              </Button>
+                {isItemLoading ? (
+                    <>
+                        <Skeleton className="h-8 w-24" />
+                        <Skeleton className="h-10 w-28" />
+                    </>
+                ) : (
+                    <>
+                    <div className="flex items-center gap-2">
+                        <Coins className="h-6 w-6 text-primary" />
+                        <span className="text-2xl font-bold">{item.cost} DT</span>
+                    </div>
+                    <Button onClick={() => handleRedeemClick(item)} disabled={totalBalance < item.cost}>
+                        Redeem Now
+                    </Button>
+                    </>
+                )}
             </div>
           </CardContent>
         </Card>
   )
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 space-y-8 p-4 md:p-8">
+        <div className="flex items-center justify-between space-y-2">
+          <div>
+            <Skeleton className="h-8 w-64 rounded-md" />
+            <Skeleton className="h-4 w-96 mt-2 rounded-md" />
+          </div>
+          <Skeleton className="h-10 w-32 rounded-full" />
+        </div>
+        <Tabs defaultValue="health-services" className="space-y-4">
+            <Skeleton className="h-16 w-full rounded-md" />
+            <TabsContent value="health-services">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {[...healthServices, ...marketplaceItems].map((item, i) => renderItemCard(item, true))}
+                </div>
+            </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -288,12 +332,12 @@ export default function RedeemPage() {
             </TabsList>
             <TabsContent value="health-services">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {healthServices.map(renderItemCard)}
+                    {healthServices.map(item => renderItemCard(item, isLoading))}
                 </div>
             </TabsContent>
             <TabsContent value="marketplace">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {marketplaceItems.map(renderItemCard)}
+                    {marketplaceItems.map(item => renderItemCard(item, isLoading))}
                 </div>
             </TabsContent>
         </Tabs>

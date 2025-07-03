@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Coins, MapPin, Clock, Award, Droplets, HeartPulse, PlusCircle, MinusCircle, CalendarPlus, Shield, Star, Heart, MoreHorizontal, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +50,7 @@ type UpcomingAppointment = {
 };
 
 export default function DashboardPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const [appointment, setAppointment] = useState<UpcomingAppointment | null>(null);
   const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -70,6 +72,7 @@ export default function DashboardPage() {
       setTransactions(initialTransactions);
       localStorage.setItem('transactions', JSON.stringify(initialTransactions));
     }
+    setIsLoading(false);
   }, []);
 
   const handleCancelAppointment = () => {
@@ -104,6 +107,72 @@ export default function DashboardPage() {
     { title: "Total Donations", value: "4 Pints", icon: Droplets, color: "text-chart-2", note: "Next goal: 5 donations!" },
     { title: "Lives Saved", value: "12 Lives", icon: HeartPulse, color: "text-chart-1", note: "Every pint saves up to 3 lives" },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 space-y-8 p-4 md:p-8">
+        <div className="flex items-center justify-between space-y-2">
+          <div>
+            <Skeleton className="h-8 w-64 rounded-md" />
+            <Skeleton className="h-4 w-80 mt-2 rounded-md" />
+          </div>
+          <Skeleton className="h-10 w-36 hidden sm:flex rounded-md" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24 rounded-md" />
+                <Skeleton className="h-5 w-5 rounded-md" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-10 w-32 rounded-md" />
+                <Skeleton className="h-3 w-40 mt-2 rounded-md" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid gap-8 lg:grid-cols-5">
+          <div className="lg:col-span-3 space-y-8">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-48 rounded-md" />
+                <Skeleton className="h-4 w-full mt-2 rounded-md" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-24 w-full rounded-md" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32 rounded-md" />
+                <Skeleton className="h-4 w-64 mt-2 rounded-md" />
+              </CardHeader>
+              <CardContent className="pt-0 space-y-2">
+                <Skeleton className="h-12 w-full rounded-md" />
+                <Skeleton className="h-12 w-full rounded-md" />
+                <Skeleton className="h-12 w-full rounded-md" />
+              </CardContent>
+            </Card>
+          </div>
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-24 rounded-md" />
+                <Skeleton className="h-4 w-48 mt-2 rounded-md" />
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-4">
+                <Skeleton className="h-24 w-full rounded-md" />
+                <Skeleton className="h-24 w-full rounded-md" />
+                <Skeleton className="h-24 w-full rounded-md" />
+                <Skeleton className="h-24 w-full rounded-md" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">

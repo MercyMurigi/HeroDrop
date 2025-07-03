@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Coins, PlusCircle, MinusCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const initialTransactions = [
   { date: '2024-07-20', description: 'Welcome Bonus', amount: 10, type: 'credit' },
@@ -19,6 +20,7 @@ type Transaction = {
 };
 
 export default function WalletPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
@@ -30,9 +32,58 @@ export default function WalletPage() {
       setTransactions(initialTransactions);
       localStorage.setItem('transactions', JSON.stringify(initialTransactions));
     }
+    setIsLoading(false);
   }, []);
 
   const totalBalance = transactions.reduce((acc, tx) => acc + tx.amount, 0);
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 space-y-8 p-4 md:p-8">
+        <div className="flex items-center justify-between space-y-2">
+          <Skeleton className="h-8 w-72 rounded-md" />
+        </div>
+        <Card className="shadow-lg text-center w-full max-w-md mx-auto bg-primary text-primary-foreground">
+          <CardHeader>
+            <Skeleton className="h-6 w-32 mx-auto rounded-md bg-primary-foreground/20" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center gap-4">
+              <Skeleton className="h-16 w-16 rounded-full bg-primary-foreground/20" />
+              <Skeleton className="h-16 w-32 rounded-md bg-primary-foreground/20" />
+            </div>
+            <Skeleton className="h-4 w-24 mx-auto mt-2 rounded-md bg-primary-foreground/20" />
+          </CardContent>
+        </Card>
+        <Card className="shadow-lg">
+          <CardHeader>
+            <Skeleton className="h-6 w-48 rounded-md" />
+            <Skeleton className="h-4 w-72 mt-2 rounded-md" />
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Amount (DT)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[...Array(5)].map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-24 rounded-md" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-48 rounded-md" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-6 w-20 ml-auto rounded-md" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
