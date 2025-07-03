@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Coins, MapPin, Clock, Award, Droplets, HeartPulse, PlusCircle, MinusCircle, CalendarPlus, Shield, Star, Heart, MoreHorizontal, CheckCircle } from 'lucide-react';
+import { Coins, MapPin, Clock, Award, Droplets, HeartPulse, PlusCircle, MinusCircle, CalendarPlus, Shield, Star, Heart, MoreHorizontal } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Skeleton } from '@/components/ui/skeleton';
@@ -41,9 +41,10 @@ type Transaction = {
   type: 'credit' | 'debit';
 };
 
-type UpcomingAppointment = {
+type Appointment = {
+  id: number;
   facility: {
-    name: string;
+    name:string;
     address: string;
   };
   date: string; // ISO string
@@ -51,17 +52,19 @@ type UpcomingAppointment = {
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [appointment, setAppointment] = useState<UpcomingAppointment | null>(null);
-  const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const router = useRouter();
   const { toast } = useToast();
+  
+  const sortedAppointments = [...appointments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   useEffect(() => {
-    // Load appointment from local storage
-    const storedAppointment = localStorage.getItem('upcomingAppointment');
-    if (storedAppointment) {
-      setAppointment(JSON.parse(storedAppointment));
+    // Load appointments from local storage
+    const storedAppointments = localStorage.getItem('userAppointments');
+    if (storedAppointments) {
+      setAppointments(JSON.parse(storedAppointments));
     }
     
     // Load transactions from local storage, or set initial state
@@ -76,8 +79,11 @@ export default function DashboardPage() {
   }, []);
 
   const handleCancelAppointment = () => {
-    localStorage.removeItem('upcomingAppointment');
-    setAppointment(null);
+    if (!appointmentToCancel) return;
+    
+    const updatedAppointments = appointments.filter(apt => apt.id !== appointmentToCancel.id);
+    localStorage.setItem('userAppointments', JSON.stringify(updatedAppointments));
+    setAppointments(updatedAppointments);
 
     const cancellationTransaction = {
       date: new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD format
@@ -97,7 +103,7 @@ export default function DashboardPage() {
       description: "Your appointment has been cancelled and 10 DamuTokens were deducted.",
       variant: 'destructive',
     });
-    setIsCancelAlertOpen(false);
+    setAppointmentToCancel(null);
   };
   
   const totalBalance = transactions.reduce((acc, tx) => acc + tx.amount, 0);
@@ -215,45 +221,47 @@ export default function DashboardPage() {
                 style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}
             >
               <CardHeader>
-                  <CardTitle className="font-headline">Upcoming Appointment</CardTitle>
+                  <CardTitle className="font-headline">Upcoming Appointments</CardTitle>
                   <CardDescription>
-                    {appointment ? "Your next donation is scheduled. We can't wait to see you!" : "You have no upcoming appointments."}
+                    {sortedAppointments.length > 0 ? "Your next donations are scheduled. We can't wait to see you!" : "You have no upcoming appointments."}
                   </CardDescription>
               </CardHeader>
-              <CardContent>
-                  {appointment ? (
-                    <div className="relative p-4 rounded-lg bg-primary/5 border border-primary/10">
-                        <div className="text-xl font-bold text-primary pr-10">{appointment.facility.name}</div>
-                        <div className="flex items-center text-sm text-muted-foreground mt-2">
-                            <Clock className="h-4 w-4 mr-2 flex-shrink-0" />
-                            <span>{new Date(appointment.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <CardContent className="space-y-4">
+                  {sortedAppointments.length > 0 ? (
+                    sortedAppointments.map(appointment => (
+                        <div key={appointment.id} className="relative p-4 rounded-lg bg-primary/5 border border-primary/10">
+                            <div className="text-xl font-bold text-primary pr-10">{appointment.facility.name}</div>
+                            <div className="flex items-center text-sm text-muted-foreground mt-2">
+                                <Clock className="h-4 w-4 mr-2 flex-shrink-0" />
+                                <span>{new Date(appointment.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                            </div>
+                            <div className="flex items-center text-sm text-muted-foreground mt-1">
+                                <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                                <span>{appointment.facility.address}</span>
+                            </div>
+                            <div className="absolute top-2 right-2">
+                               <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Toggle menu</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => router.push('/booking')}>
+                                    Reschedule
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => setAppointmentToCancel(appointment)}
+                                    className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                  >
+                                    Cancel Appointment
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                           </div>
                         </div>
-                        <div className="flex items-center text-sm text-muted-foreground mt-1">
-                            <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                            <span>{appointment.facility.address}</span>
-                        </div>
-                        <div className="absolute top-2 right-2">
-                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Toggle menu</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => router.push('/booking')}>
-                                Reschedule
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => setIsCancelAlertOpen(true)}
-                                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                              >
-                                Cancel Appointment
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                       </div>
-                    </div>
+                    ))
                   ) : (
                      <div className="text-center text-muted-foreground p-4 flex flex-col items-center justify-center">
                         <p className="mb-4">Book a new appointment to save lives!</p>
@@ -316,7 +324,7 @@ export default function DashboardPage() {
         </div>
       </div>
       
-      <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
+      <AlertDialog open={!!appointmentToCancel} onOpenChange={(isOpen) => !isOpen && setAppointmentToCancel(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>

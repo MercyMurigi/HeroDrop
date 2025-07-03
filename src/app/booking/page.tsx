@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FacilityFinder } from '@/components/facility-finder';
 import { EligibilityQuestionnaire } from '@/components/eligibility-questionnaire';
 import { ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
-import type { FindFacilitiesOutput } from '@/ai/flows/find-facilities';
+import type { FindFacilitiesOutput } from '@/ai/schemas/facilities';
 import { useToast } from '@/hooks/use-toast';
 import { generateSmsNotification } from '@/ai/flows/generate-sms-notification';
 import { generateNextOfKinSms } from '@/ai/flows/generate-next-of-kin-sms';
@@ -71,14 +71,19 @@ export default function BookingPage() {
         console.log("Donor SMS:", donorSmsResult.smsMessage);
         console.log("Next of Kin SMS:", nextOfKinSmsResult.smsMessage);
         
-        const appointmentDetails = {
+        const newAppointment = {
+            id: Date.now(),
             facility: {
                 name: selectedFacility.name,
                 address: selectedFacility.address,
             },
             date: selectedDate.toISOString(),
         };
-        localStorage.setItem('upcomingAppointment', JSON.stringify(appointmentDetails));
+        
+        const storedAppointments = localStorage.getItem('userAppointments');
+        const currentAppointments = storedAppointments ? JSON.parse(storedAppointments) : [];
+        const updatedAppointments = [...currentAppointments, newAppointment];
+        localStorage.setItem('userAppointments', JSON.stringify(updatedAppointments));
         
         // Add pledge transaction to local storage
         const pledgeTransaction = {
@@ -153,7 +158,7 @@ export default function BookingPage() {
                     <CardDescription>Use our AI-powered search to find the most convenient donation center near you.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <FacilityFinder onFacilitySelect={handleFacilitySelect} />
+                    <FacilityFinder onFacilitySelect={handleFacilitySelect} selectedFacility={null} />
                 </CardContent>
             </Card>
             <div className="flex justify-end">
