@@ -97,7 +97,7 @@ export default function RedeemPage() {
     setIsDialogOpen(true);
   };
 
-  const proceedToConfirmation = async () => {
+  const proceedToConfirmation = () => {
     if (!selectedItem || !selectedLocation) {
         toast({
             variant: "destructive",
@@ -109,42 +109,45 @@ export default function RedeemPage() {
 
     setIsGenerating(true);
 
-    const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`;
-    let suggestedTime = "Anytime during opening hours";
-    let reasoning = "Please check the store/facility for specific operating hours before visiting.";
+    const generateDetails = async () => {
+        const code = `${selectedItem.title.substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+        let suggestedTime = "Anytime during opening hours";
+        let reasoning = "Please check the store/facility for specific operating hours before visiting.";
 
-    // Only attempt to get an AI suggestion for health services.
-    if (selectedItem.category === 'service' && 'availability' in selectedLocation) {
-        try {
-            const result = await suggestRedemptionTime({
-                facilityName: selectedLocation.name,
-                serviceName: selectedItem.title,
-            });
-            // Only update the time if the AI returns a valid suggestion.
-            if (result?.suggestedTime) {
-                suggestedTime = result.suggestedTime;
-                reasoning = result.reasoning;
-            } else {
-                console.warn("AI did not provide a suggested time. Using default.");
+        if (selectedItem.category === 'service' && selectedLocation && 'availability' in selectedLocation) {
+            try {
+                const result = await suggestRedemptionTime({
+                    facilityName: selectedLocation.name,
+                    serviceName: selectedItem.title,
+                });
+                if (result?.suggestedTime) {
+                    suggestedTime = result.suggestedTime;
+                    reasoning = result.reasoning;
+                }
+            } catch (error) {
+                console.error("Failed to get suggested time from AI:", error);
+                toast({
+                    title: "AI Suggestion Failed",
+                    description: "Could not get a suggested visit time, but you can still proceed.",
+                });
             }
-        } catch (error) {
-            // If the AI call fails, we log the error, notify the user, and proceed with default values.
-            console.error("Failed to get suggested time from AI:", error);
-            toast({
-                title: "AI Suggestion Failed",
-                description: "Could not get a suggested visit time, but you can still proceed with your redemption.",
-            });
         }
-    }
-    
-    // This part is now guaranteed to run, ensuring the user always proceeds to the next step.
-    setRedemptionDetails({
-        code: code,
-        suggestedTime: suggestedTime,
-        reasoning: reasoning,
+        return { code, suggestedTime, reasoning };
+    };
+
+    generateDetails().then(details => {
+        setRedemptionDetails(details);
+        setDialogStep('confirmRedemption');
+        setIsGenerating(false);
+    }).catch(error => {
+        console.error("A critical error occurred during voucher generation:", error);
+        toast({
+            variant: 'destructive',
+            title: "Voucher Generation Failed",
+            description: "An unexpected error occurred. Please try again.",
+        });
+        setIsGenerating(false);
     });
-    setDialogStep('confirmRedemption');
-    setIsGenerating(false);
   };
 
   const handleConfirmRedemption = async () => {
