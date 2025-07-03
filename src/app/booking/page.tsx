@@ -79,10 +79,22 @@ export default function BookingPage() {
             date: selectedDate.toISOString(),
         };
         localStorage.setItem('upcomingAppointment', JSON.stringify(appointmentDetails));
+        
+        // Add pledge transaction to local storage
+        const pledgeTransaction = {
+          date: new Date().toLocaleDateString('en-CA'),
+          description: 'Pledged to donate',
+          amount: 10,
+          type: 'credit' as 'credit',
+        };
+        const storedTransactions = localStorage.getItem('transactions');
+        const currentTransactions = storedTransactions ? JSON.parse(storedTransactions) : [];
+        const newTransactions = [pledgeTransaction, ...currentTransactions];
+        localStorage.setItem('transactions', JSON.stringify(newTransactions));
 
         toast({
             title: "Appointment Confirmed!",
-            description: `Your booking at ${selectedFacility.name} for ${selectedDate.toLocaleDateString()} is confirmed. Notifications sent.`,
+            description: `You've earned 10 DamuTokens! Your booking at ${selectedFacility.name} is confirmed.`,
         });
         router.push('/dashboard');
 

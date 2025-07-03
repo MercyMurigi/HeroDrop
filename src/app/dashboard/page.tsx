@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Coins, MapPin, Clock, Award, Droplets, HeartPulse, PlusCircle, MinusCircle, CalendarPlus, Shield, Star, Heart, MoreHorizontal } from 'lucide-react';
+import { Coins, MapPin, Clock, Award, Droplets, HeartPulse, PlusCircle, MinusCircle, CalendarPlus, Shield, Star, Heart, MoreHorizontal, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
@@ -19,12 +19,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
 const initialTransactions = [
-    { date: '2024-07-22', description: 'Completed blood donation', amount: 100, type: 'credit' },
-    { date: '2024-07-21', description: 'Sign-up & Pledge', amount: 10, type: 'credit' },
+    { date: '2024-07-20', description: 'Welcome Bonus', amount: 10, type: 'credit' },
     { date: '2024-07-15', description: 'Refer a friend: Alex', amount: 30, type: 'credit' },
 ];
 
@@ -35,7 +33,12 @@ const badges = [
     { name: "Superstar Donor", icon: Star, color: "text-chart-5" },
 ];
 
-type Transaction = typeof initialTransactions[0];
+type Transaction = {
+  date: string;
+  description: string;
+  amount: number;
+  type: 'credit' | 'debit';
+};
 
 type UpcomingAppointment = {
   facility: {
@@ -48,6 +51,7 @@ type UpcomingAppointment = {
 export default function DashboardPage() {
   const [appointment, setAppointment] = useState<UpcomingAppointment | null>(null);
   const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
+  const [isConfirmDonationAlertOpen, setIsConfirmDonationAlertOpen] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const router = useRouter();
   const { toast } = useToast();
@@ -92,6 +96,31 @@ export default function DashboardPage() {
       variant: 'destructive',
     });
     setIsCancelAlertOpen(false);
+  };
+
+  const handleDonationCompleted = () => {
+    if (!appointment) return;
+    localStorage.removeItem('upcomingAppointment');
+    setAppointment(null);
+
+    const donationTransaction = {
+        date: new Date().toLocaleDateString('en-CA'),
+        description: `Donation at ${appointment.facility.name}`,
+        amount: 100,
+        type: 'credit' as 'credit',
+    };
+    
+    setTransactions(prevTransactions => {
+        const newTransactions = [donationTransaction, ...prevTransactions];
+        localStorage.setItem('transactions', JSON.stringify(newTransactions));
+        return newTransactions;
+    });
+
+    toast({
+        title: "Donation Confirmed!",
+        description: "Thank you heroic donor! 100 DamuTokens have been added to your wallet.",
+    });
+    setIsConfirmDonationAlertOpen(false);
   };
   
   const totalBalance = transactions.reduce((acc, tx) => acc + tx.amount, 0);
@@ -161,43 +190,32 @@ export default function DashboardPage() {
                             <span>{appointment.facility.address}</span>
                         </div>
                         <div className="absolute top-2 right-2">
-                           <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Toggle menu</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => router.push('/booking')}>
-                                    Reschedule
-                                  </DropdownMenuItem>
-                                  <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                                      Cancel Appointment
-                                    </DropdownMenuItem>
-                                  </AlertDialogTrigger>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This action cannot be undone. Cancelling will deduct the 10 DamuTokens awarded for your pledge.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Go Back</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={handleCancelAppointment}
-                                    className="bg-destructive hover:bg-destructive/90"
-                                  >
-                                    Yes, Cancel It
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                           <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => setIsConfirmDonationAlertOpen(true)}
+                                className="font-semibold text-green-600 focus:bg-green-100 focus:text-green-700"
+                              >
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Mark as Donated
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => router.push('/booking')}>
+                                Reschedule
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setIsCancelAlertOpen(true)}
+                                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                              >
+                                Cancel Appointment
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                        </div>
                     </div>
                   ) : (
@@ -261,6 +279,47 @@ export default function DashboardPage() {
             </Card>
         </div>
       </div>
+      
+      <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Cancelling will deduct the 10 DamuTokens awarded for your pledge.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelAppointment}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Yes, Cancel It
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isConfirmDonationAlertOpen} onOpenChange={setIsConfirmDonationAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Your Donation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Please confirm you have completed your donation. This will credit 100 DamuTokens to your account and make you a true hero!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Not Yet</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDonationCompleted}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Yes, I Donated!
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }

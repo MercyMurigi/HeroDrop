@@ -35,6 +35,7 @@ export default function ReferralsPage() {
                 <CardTitle className="font-headline">Share and Earn 30 DT</CardTitle>
                 <CardDescription>
                   For every friend who signs up and donates, you get 30 DamuTokens!
+                  Your successful referrals will appear in your wallet's transaction history.
                 </CardDescription>
               </div>
             </div>

@@ -7,12 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Coins, PlusCircle, MinusCircle } from 'lucide-react';
 
 const initialTransactions = [
-  { date: '2024-07-22', description: 'Completed blood donation', amount: 100, type: 'credit' },
-  { date: '2024-07-21', description: 'Sign-up & Pledge', amount: 10, type: 'credit' },
+  { date: '2024-07-20', description: 'Welcome Bonus', amount: 10, type: 'credit' },
   { date: '2024-07-15', description: 'Refer a friend: Alex', amount: 30, type: 'credit' },
 ];
 
-type Transaction = typeof initialTransactions[0];
+type Transaction = {
+  date: string;
+  description: string;
+  amount: number;
+  type: 'credit' | 'debit';
+};
 
 export default function WalletPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
