@@ -39,7 +39,7 @@ const findFacilitiesPrompt = ai.definePrompt({
 
 You must interpret informal location names, slang, and typos. For example, "KNH" should be matched to "Kenyatta National Hospital". A query like "town" in Nairobi should match facilities in the central business district.
 
-Here is the list of available facilities you can match against across all 47 counties of Kenya:
+Here is the list of available facilities you can match against across all 47 counties of Kenya. This list includes both public and private hospitals:
 
 **Nairobi County:**
 - Kenyatta National Hospital, Hospital Road, Nairobi. Availability: High
@@ -47,79 +47,102 @@ Here is the list of available facilities you can match against across all 47 cou
 - Mama Lucy Kibaki Hospital, Spine Road, Nairobi. Availability: High
 - The Nairobi Hospital, Argwings Kodhek Rd, Nairobi. Availability: Medium
 - M.P. Shah Hospital, Shivachi Rd, Nairobi. Availability: Low
+- The Karen Hospital, Langata Road, Nairobi. Availability: Medium
+- Nairobi West Hospital, Gandhi Ave, Nairobi. Availability: High
+- Coptic Hospital, Ngong Road, Nairobi. Availability: Medium
 
 **Mombasa County:**
 - Coast General Teaching & Referral Hospital, Kisauni Road, Mombasa. Availability: Low
 - Pandya Memorial Hospital, Dedan Kimathi Ave, Mombasa. Availability: Medium
 - The Mombasa Hospital, Mama Ngina Dr, Mombasa. Availability: High
+- Aga Khan Hospital Mombasa, Vanga Road, Mombasa. Availability: High
+- Premier Hospital, Links Road, Mombasa. Availability: Medium
 
 **Kisumu County:**
 - Jaramogi Oginga Odinga Teaching & Referral Hospital, Kisumu-Busia Road, Kisumu. Availability: Medium
 - Aga Khan Hospital, Otieno Oyoo St, Kisumu. Availability: High
 - Kisumu County Hospital, Ang'awa Ave, Kisumu. Availability: Medium
+- Avenue Hospital Kisumu, Otieno Oyoo St, Kisumu. Availability: Medium
+- Nightingale Hospital, Milimani, Kisumu. Availability: Low
 
 **Uasin Gishu County:**
 - Moi Teaching & Referral Hospital, Nandi Road, Eldoret. Availability: Medium
 - Reale Hospital, Eldoret-Kapsabet Road, Eldoret. Availability: High
 - Eldoret Hospital, Elgon View, Eldoret. Availability: Low
+- Mediheal Hospital and Fertility Centre, Eldoret. Availability: High
+- St. Luke's Orthopaedic and Trauma Hospital, Eldoret. Availability: Medium
 
 **Nakuru County:**
 - Nakuru Level 5 Hospital, Nakuru Town. Availability: High
 - The Valley Hospital, Nakuru. Availability: Medium
 - War Memorial Hospital, Nakuru. Availability: Low
+- Evans Sunrise Medical Centre, Nakuru. Availability: High
+- Nakuru Nursing Home, Nakuru. Availability: Medium
 
 **Kiambu County:**
 - Kiambu Level 5 Hospital, Kiambu Town. Availability: High
 - Thika Level 5 Hospital, Thika Town. Availability: Medium
 - Nazareth Hospital, Riara Ridge, Limuru. Availability: High
+- AIC Kijabe Hospital, Kijabe. Availability: Medium
+- Gatundu Level 5 Hospital, Gatundu. Availability: High
 
 **Machakos County:**
 - Machakos Level 5 Hospital, Machakos Town. Availability: Medium
 - Shalom Community Hospital, Machakos. Availability: High
 - Bishop Kioko Hospital, Machakos. Availability: Low
+- Avenue Hospital, Machakos. Availability: High
 
 **Meru County:**
 - Meru Level 5 Hospital, Meru Town. Availability: High
 - The Karen Hospital, Meru Branch, Meru. Availability: Medium
 - St. Theresa's Mission Hospital, Kiirua. Availability: Medium
+- Woodlands Hospital, Meru. Availability: High
 
 **Kakamega County:**
 - Kakamega County General Hospital, Kakamega Town. Availability: High
 - Mukumu Mission Hospital, Khayega. Availability: Low
 - St. Mary's Hospital, Mumias. Availability: Medium
+- LifeCare Hospital, Kakamega. Availability: High
 
 **Garissa County:**
 - Garissa County Referral Hospital, Garissa. Availability: Medium
 - Tawfiq Hospital, Garissa. Availability: Low
+- Garissa Medical Centre, Garissa. Availability: Medium
 
 **Kajiado County:**
 - Kajiado County Referral Hospital, Kajiado Town. Availability: Medium
 - Kitengela Medical Services, Kitengela. Availability: High
 - Ongata Rongai Health Centre, Ongata Rongai. Availability: Medium
+- Aga Khan University Hospital, Kitengela Medical Centre. Availability: High
 
 **Kilifi County:**
 - Kilifi County Hospital, Kilifi Town. Availability: Low
 - Malindi Sub-County Hospital, Malindi. Availability: Medium
 - St. Luke's Hospital, Kaloleni. Availability: High
+- Mephi Hospital, Malindi. Availability: Medium
 
 **Kisii County:**
 - Kisii Teaching and Referral Hospital, Kisii Town. Availability: High
 - Hema Hospital, Kisii. Availability: Medium
 - Christamarianne Mission Hospital, Kisii. Availability: Low
+- Ram Hospital, Kisii. Availability: High
 
 **Bungoma County:**
 - Bungoma County Referral Hospital, Bungoma Town. Availability: Medium
 - LifeCare Hospital, Bungoma. Availability: High
 - Webuye Sub-County Hospital, Webuye. Availability: Low
+- St. Damiano Mission Hospital, Bungoma. Availability: Medium
 
 **Nyeri County:**
 - Nyeri County Referral Hospital, Nyeri Town. Availability: High
 - Outspan Hospital, Nyeri. Availability: Medium
 - Consolata Hospital, Mathari, Nyeri. Availability: Low
+- PCEA Tumutumu Hospital, Nyeri. Availability: Medium
 
 **Turkana County:**
 - Lodwar County Referral Hospital, Lodwar. Availability: Medium
 - Kakuma Mission Hospital, Kakuma. Availability: Low
+- Lopiding Sub-County Hospital, Lokichogio. Availability: Low
 
 **Other Counties:**
 - Mandera County Referral Hospital, Mandera. Availability: Low
@@ -127,7 +150,7 @@ Here is the list of available facilities you can match against across all 47 cou
 - Marsabit County Referral Hospital, Marsabit. Availability: Medium
 - Isiolo County Referral Hospital, Isiolo. Availability: Medium
 - Chuka County Referral Hospital, Chuka, Tharaka-Nithi. Availability: High
-- Embu Level 5 Hospital, Embu. Availability: High
+- Tenri Hospital, Embu, Embu. Availability: High
 - Kitui County Referral Hospital, Kitui. Availability: Medium
 - Makueni County Referral Hospital, Wote. Availability: High
 - JM Kariuki Memorial Hospital, Ol Kalou, Nyandarua. Availability: High
