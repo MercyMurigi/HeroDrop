@@ -13,14 +13,14 @@ import type { FindFacilitiesOutput } from '@/ai/schemas/facilities';
 type Facility = FindFacilitiesOutput['facilities'][0];
 
 interface FacilityFinderProps {
-  onFacilitySelect: (facility: Facility) => void;
+  onFacilitySelect: (facility: Facility | null) => void;
+  selectedFacility: Facility | null;
 }
 
-export function FacilityFinder({ onFacilitySelect }: FacilityFinderProps) {
+export function FacilityFinder({ onFacilitySelect, selectedFacility }: FacilityFinderProps) {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [facilities, setFacilities] = useState<Facility[]>([]);
-  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const { toast } = useToast();
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -29,7 +29,7 @@ export function FacilityFinder({ onFacilitySelect }: FacilityFinderProps) {
 
     setIsLoading(true);
     setFacilities([]);
-    setSelectedFacility(null);
+    onFacilitySelect(null);
 
     try {
       const result = await findFacilities({ locationQuery: query });
@@ -53,7 +53,6 @@ export function FacilityFinder({ onFacilitySelect }: FacilityFinderProps) {
   };
   
   const handleSelect = (facility: Facility) => {
-      setSelectedFacility(facility);
       onFacilitySelect(facility);
   }
 

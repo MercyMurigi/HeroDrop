@@ -156,7 +156,7 @@ export default function RedeemPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-             <FacilityFinder onFacilitySelect={setSelectedFacility} />
+             <FacilityFinder onFacilitySelect={setSelectedFacility} selectedFacility={selectedFacility} />
           </div>
           <DialogFooter>
              <DialogClose asChild>
