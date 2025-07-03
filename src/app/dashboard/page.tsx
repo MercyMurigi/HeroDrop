@@ -22,10 +22,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const stats = [
-  { title: "DamuTokens Balance", value: "130 DT", icon: Coins, color: "text-primary", note: "+100 from last donation" },
-  { title: "Total Donations", value: "4 Pints", icon: Droplets, color: "text-chart-2", note: "Next goal: 5 donations!" },
-  { title: "Lives Saved", value: "12 Lives", icon: HeartPulse, color: "text-chart-1", note: "Every pint saves up to 3 lives" },
+const initialTransactions = [
+    { date: '2024-07-22', description: 'Completed blood donation', amount: 100, type: 'credit' },
+    { date: '2024-07-21', description: 'Sign-up & Pledge', amount: 10, type: 'credit' },
+    { date: '2024-07-15', description: 'Refer a friend: Alex', amount: 30, type: 'credit' },
 ];
 
 const badges = [
@@ -35,11 +35,7 @@ const badges = [
     { name: "Superstar Donor", icon: Star, color: "text-chart-5" },
 ];
 
-const initialTransactions = [
-    { date: '2024-07-22', description: 'Completed blood donation', amount: 100, type: 'credit' },
-    { date: '2024-07-21', description: 'Sign-up & Pledge', amount: 10, type: 'credit' },
-    { date: '2024-07-15', description: 'Refer a friend: Alex', amount: 30, type: 'credit' },
-];
+type Transaction = typeof initialTransactions[0];
 
 type UpcomingAppointment = {
   facility: {
@@ -52,14 +48,24 @@ type UpcomingAppointment = {
 export default function DashboardPage() {
   const [appointment, setAppointment] = useState<UpcomingAppointment | null>(null);
   const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
+    // Load appointment from local storage
     const storedAppointment = localStorage.getItem('upcomingAppointment');
     if (storedAppointment) {
       setAppointment(JSON.parse(storedAppointment));
+    }
+    
+    // Load transactions from local storage, or set initial state
+    const storedTransactions = localStorage.getItem('transactions');
+    if (storedTransactions) {
+      setTransactions(JSON.parse(storedTransactions));
+    } else {
+      setTransactions(initialTransactions);
+      localStorage.setItem('transactions', JSON.stringify(initialTransactions));
     }
   }, []);
 
@@ -71,9 +77,14 @@ export default function DashboardPage() {
       date: new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD format
       description: 'Pledge Cancelled',
       amount: -10,
-      type: 'debit',
+      type: 'debit' as 'debit',
     };
-    setTransactions(prev => [cancellationTransaction, ...prev]);
+    
+    setTransactions(prevTransactions => {
+        const newTransactions = [cancellationTransaction, ...prevTransactions];
+        localStorage.setItem('transactions', JSON.stringify(newTransactions));
+        return newTransactions;
+    });
 
     toast({
       title: "Appointment Cancelled",
@@ -82,6 +93,14 @@ export default function DashboardPage() {
     });
     setIsCancelAlertOpen(false);
   };
+  
+  const totalBalance = transactions.reduce((acc, tx) => acc + tx.amount, 0);
+  
+  const stats = [
+    { title: "DamuTokens Balance", value: `${totalBalance} DT`, icon: Coins, color: "text-primary", note: "Your current balance" },
+    { title: "Total Donations", value: "4 Pints", icon: Droplets, color: "text-chart-2", note: "Next goal: 5 donations!" },
+    { title: "Lives Saved", value: "12 Lives", icon: HeartPulse, color: "text-chart-1", note: "Every pint saves up to 3 lives" },
+  ];
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
@@ -206,7 +225,7 @@ export default function DashboardPage() {
               <CardContent className="pt-0">
                   <Table>
                       <TableBody>
-                          {transactions.map((tx, index) => (
+                          {transactions.slice(0, 3).map((tx, index) => (
                               <TableRow key={index} className="border-b last:border-b-0">
                                   <TableCell className="font-medium p-3">{tx.description}</TableCell>
                                   <TableCell className="text-right p-3">

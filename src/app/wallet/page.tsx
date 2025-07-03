@@ -1,16 +1,33 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Coins, PlusCircle, MinusCircle } from 'lucide-react';
 
-const transactions = [
+const initialTransactions = [
   { date: '2024-07-22', description: 'Completed blood donation', amount: 100, type: 'credit' },
   { date: '2024-07-21', description: 'Sign-up & Pledge', amount: 10, type: 'credit' },
   { date: '2024-07-15', description: 'Refer a friend: Alex', amount: 30, type: 'credit' },
-  { date: '2024-07-10', description: 'Redeemed: Queue Priority', amount: -10, type: 'debit' },
 ];
 
+type Transaction = typeof initialTransactions[0];
+
 export default function WalletPage() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    // Load transactions from local storage, or set initial state
+    const storedTransactions = localStorage.getItem('transactions');
+    if (storedTransactions) {
+      setTransactions(JSON.parse(storedTransactions));
+    } else {
+      setTransactions(initialTransactions);
+      localStorage.setItem('transactions', JSON.stringify(initialTransactions));
+    }
+  }, []);
+
   const totalBalance = transactions.reduce((acc, tx) => acc + tx.amount, 0);
 
   return (
@@ -49,7 +66,7 @@ export default function WalletPage() {
             <TableBody>
               {transactions.map((tx, index) => (
                 <TableRow key={index}>
-                  <TableCell className="font-medium">{tx.date}</TableCell>
+                  <TableCell className="font-medium">{new Date(tx.date).toLocaleDateString()}</TableCell>
                   <TableCell>{tx.description}</TableCell>
                   <TableCell className="text-right">
                     <Badge variant={tx.type === 'credit' ? 'default' : 'destructive'} className={tx.type === 'credit' ? 'bg-accent text-accent-foreground hover:bg-accent/80' : ''}>
