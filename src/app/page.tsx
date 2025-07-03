@@ -12,6 +12,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.08-2.58 1.98-4.56 1.98-3.59 0-6.52-2.91-6.52-6.49s2.93-6.49 6.52-6.49c2.03 0 3.36.85 4.17 1.62l2.55-2.54C16.82 4.01 14.86 3 12.48 3c-5.21 0-9.48 4.22-9.48 9.42s4.27 9.42 9.48 9.42c2.81 0 5.23-1.02 6.9-2.73 1.82-1.82 2.37-4.41 2.37-6.59 0-.6-.05-1.14-.15-1.62h-9.12z" fill="currentColor"/>
+    </svg>
+);
+
+
 export default function AuthPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -86,6 +93,23 @@ export default function AuthPage() {
                     <Button onClick={handleLogin} className="w-full" size="lg">
                         Login as {role === 'donor' ? 'Donor' : 'Admin'}
                     </Button>
+                    
+                    <div className="relative my-2">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-card px-2 text-muted-foreground">
+                                Or continue with
+                            </span>
+                        </div>
+                    </div>
+
+                    <Button variant="outline" className="w-full" size="lg" onClick={handleLogin}>
+                        <GoogleIcon className="mr-2 h-5 w-5" />
+                        Sign in with Google
+                    </Button>
+
                     <div className="mt-4 text-center text-sm">
                         Don&apos;t have an account?{" "}
                         <Link href="/signup" className="underline font-semibold text-primary">
