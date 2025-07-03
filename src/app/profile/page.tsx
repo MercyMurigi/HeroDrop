@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Camera } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ProfilePage() {
     return (
@@ -36,7 +37,6 @@ export default function ProfilePage() {
                         </div>
                         <div className="flex-1">
                             <h3 className="text-2xl font-semibold">Jane Donor</h3>
-                            <p className="text-muted-foreground">Blood Type: O+</p>
                         </div>
                     </div>
 
@@ -56,6 +56,31 @@ export default function ProfilePage() {
                         <div className="space-y-2">
                             <Label htmlFor="email">Email Address</Label>
                             <Input id="email" type="email" defaultValue="jane.donor@example.com" />
+                        </div>
+
+                        <div className="md:col-span-2 border-t pt-6 mt-2">
+                            <h3 className="text-lg font-semibold mb-4">Medical Information</h3>
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="blood-type">Blood Type</Label>
+                                    <Select defaultValue="O+">
+                                        <SelectTrigger id="blood-type">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="A+">A+</SelectItem>
+                                            <SelectItem value="A-">A-</SelectItem>
+                                            <SelectItem value="B+">B+</SelectItem>
+                                            <SelectItem value="B-">B-</SelectItem>
+                                            <SelectItem value="AB+">AB+</SelectItem>
+                                            <SelectItem value="AB-">AB-</SelectItem>
+                                            <SelectItem value="O+">O+</SelectItem>
+                                            <SelectItem value="O-">O-</SelectItem>
+                                            <SelectItem value="unknown">I don't know</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
                         </div>
                         
                         <div className="md:col-span-2 border-t pt-6 mt-2">

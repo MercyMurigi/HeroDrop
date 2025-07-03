@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Logo } from '@/components/logo';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function SignupPage() {
   return (
@@ -47,6 +49,39 @@ export default function SignupPage() {
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" type="password" required />
+              </div>
+
+              <div className="border-t pt-4 mt-2">
+                  <h3 className="text-md font-semibold mb-2">Basic Medical Information</h3>
+                  <div className="grid gap-4">
+                      <div className="grid gap-2">
+                          <Label htmlFor="blood-type">Blood Type (if known)</Label>
+                          <Select>
+                              <SelectTrigger id="blood-type">
+                                  <SelectValue placeholder="Select your blood type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  <SelectItem value="A+">A+</SelectItem>
+                                  <SelectItem value="A-">A-</SelectItem>
+                                  <SelectItem value="B+">B+</SelectItem>
+                                  <SelectItem value="B-">B-</SelectItem>
+                                  <SelectItem value="AB+">AB+</SelectItem>
+                                  <SelectItem value="AB-">AB-</SelectItem>
+                                  <SelectItem value="O+">O+</SelectItem>
+                                  <SelectItem value="O-">O-</SelectItem>
+                                  <SelectItem value="unknown">I don't know</SelectItem>
+                              </SelectContent>
+                          </Select>
+                      </div>
+                      <div className="items-top flex space-x-2">
+                          <Checkbox id="eligibility" />
+                          <div className="grid gap-1.5 leading-none">
+                              <Label htmlFor="eligibility" className="font-normal text-muted-foreground">
+                                  I confirm that I meet the basic eligibility criteria for donating blood (e.g., age 16-65, weight over 50kg).
+                              </Label>
+                          </div>
+                      </div>
+                  </div>
               </div>
               
               <div className="border-t pt-4 mt-2">
